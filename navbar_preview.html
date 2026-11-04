@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SITRA - Estructura Jerárquica Nacional SUNAT (21 ITIs / 94 CSCs)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
+  
+  <style>
+    /* =====================================================================
+       VARIABLES DE DISEÑO INSTITUCIONAL SUNAT - TONO CLARO, PLANO #0163ac
+       ===================================================================== */
+    :root {
+      --primary-solid: #0163ac;
+      --primary-solid-hover: #014f88;
+      --primary-subtle: #f0f7ff;
+      --primary-border: #cce3f8;
+      
+      --bg-page: #f8fafc;
+      --bg-sidebar: #ffffff;
+      --bg-card: #f8fafc;
+      --bg-card-inner: #ffffff;
+      --bg-hover: #f1f5f9;
+      
+      --border-light: #e2e8f0;
+      --border-medium: #cbd5e1;
+      
+      --text-title: #0f172a;
+      --text-body: #334155;
+      --text-muted: #64748b;
+      --text-white: #ffffff;
+      
+      --radius-pill: 9999px;
+      --radius-card: 16px;
+      --radius-sidebar: 24px;
+      --radius-btn: 10px;
+      
+      --font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      --transition-fast: all 0.18s ease;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-family);
+      background-color: var(--bg-page);
+      color: var(--text-body);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.5;
+    }
+
+    /* BARRA SUPERIOR INSTITUCIONAL */
+    .top-institutional-bar {
+      background-color: #ffffff;
+      border-bottom: 1px solid var(--border-light);
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .inst-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--text-title);
+    }
+
+    .inst-tag {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: var(--radius-pill);
+      background-color: #e0f2fe;
+      color: #0369a1;
+      font-weight: 700;
+    }
+
+    .app-layout {
+      flex: 1;
+      display: flex;
+      padding: 24px;
+      gap: 24px;
+      max-width: 1540px;
+      width: 100%;
+      margin: 0 auto;
+      align-items: stretch;
+    }
+
+    /* =====================================================================
+       SIDEBAR REESTRUCTURADO SIN REDUNDANCIAS (ESTILO PLANO #0163ac)
+       ===================================================================== */
+    .sidebar-sitra {
+      width: 300px;
+      background-color: var(--bg-sidebar);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-sidebar);
+      padding: 22px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      flex-shrink: 0;
+      user-select: none;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+    }
+
+    /* 1. Header institucional */
+    .brand-block {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 4px 6px 12px;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .brand-icon-solid {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background-color: var(--primary-solid);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 19px;
+      flex-shrink: 0;
+    }
+
+    .brand-main-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--text-title);
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+    }
+
+    .brand-sub-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    /* Separador de Sección con etiqueta */
+    .sidebar-section-title {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 6px 10px 2px;
+    }
+
+    /* Lista de Navegación */
+    .sidebar-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      list-style: none;
+    }
+
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: var(--radius-pill);
+      color: var(--text-body);
+      text-decoration: none;
+      font-size: 13.5px;
+      font-weight: 600;
+      transition: var(--transition-fast);
+      cursor: pointer;
+      border: 1px solid transparent;
+      background-color: transparent;
+      width: 100%;
+      text-align: left;
+      font-family: inherit;
+    }
+
+    .nav-btn i {
+      font-size: 16px;
+      width: 20px;
+      text-align: center;
+      color: var(--text-muted);
+      transition: var(--transition-fast);
+    }
+
+    .nav-btn.active {
+      background-color: var(--primary-solid);
+      color: #ffffff;
+      font-weight: 700;
+    }
+
+    .nav-btn.active i {
+      color: #ffffff;
+    }
+
+    .nav-btn:not(.active):hover {
+      background-color: var(--bg-hover);
+      color: var(--text-title);
+    }
+
+    .nav-btn:not(.active):hover i {
+      color: var(--primary-solid);
+    }
+
+    .badge-counter {
+      margin-left: auto;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: var(--radius-pill);
+      background-color: #e2e8f0;
+      color: var(--text-title);
+    }
+
+    .nav-btn.active .badge-counter {
+      background-color: #ffffff;
+      color: var(--primary-solid);
+    }
+
+    /* Selector de Intendencia Desplegable / Submenú limpio */
+    .submenu-list {
+      list-style: none;
+      padding-left: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      margin-top: 2px;
+    }
+
+    .submenu-item {
+      padding: 6px 12px;
+      font-size: 12.5px;
+      color: var(--text-muted);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: var(--transition-fast);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .submenu-item:hover {
+      color: var(--primary-solid);
+      background-color: var(--primary-subtle);
+      font-weight: 600;
+    }
+
+    .submenu-item.active {
+      color: var(--primary-solid);
+      background-color: var(--primary-subtle);
+      font-weight: 700;
+    }
+
+    /* Buscador predictivo en el menú */
+    .quick-search-box {
+      margin: 4px 6px;
+      position: relative;
+    }
+
+    .quick-search-input {
+      width: 100%;
+      padding: 8px 12px 8px 32px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--border-light);
+      background-color: var(--bg-page);
+      font-size: 12.5px;
+      font-family: inherit;
+      color: var(--text-title);
+      outline: none;
+      transition: var(--transition-fast);
+    }
+
+    .quick-search-input:focus {
+      border-color: var(--primary-solid);
+      background-color: #ffffff;
+      box-shadow: 0 0 0 3px rgba(1, 99, 172, 0.12);
+    }
+
+    .quick-search-icon {
+      position: absolute;
+      left: 11px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 12px;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+    /* 3. Bloque de Usuario Institucional (Sin 'Upgrade' ni 'Your Plan') */
+    .user-institutional-card {
+      margin-top: auto;
+      padding-top: 12px;
+      border-top: 1px solid var(--border-light);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .user-info-box {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-card);
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .user-avatar-circle {
+      width: 34px;
+      height: 34px;
+      border-radius: var(--radius-pill);
+      background-color: var(--primary-solid);
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 12.5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .user-meta-details {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .user-official-name {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--text-title);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-official-role {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--primary-solid);
+    }
+
+    .btn-logout-clean {
+      color: var(--text-muted);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 4px 6px;
+      border-radius: 6px;
+      font-size: 14px;
+      transition: var(--transition-fast);
+    }
+
+    .btn-logout-clean:hover {
+      color: #dc2626;
+      background-color: #fee2e2;
+    }
+
+    /* =====================================================================
+       ÁREA PRINCIPAL DE CONTENIDO INTERACTIVO (DEMO DRILL-DOWN)
+       ===================================================================== */
+    .main-stage-preview {
+      flex: 1;
+      background-color: #ffffff;
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-sidebar);
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+    }
+
+    /* BREADCRUMB JERÁRQUICO NACIONAL */
+    .breadcrumb-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-muted);
+      background-color: var(--bg-page);
+      padding: 8px 16px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--border-light);
+      width: fit-content;
+    }
+
+    .breadcrumb-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--text-body);
+      transition: var(--transition-fast);
+    }
+
+    .breadcrumb-item:hover {
+      color: var(--primary-solid);
+    }
+
+    .breadcrumb-item.current {
+      color: var(--primary-solid);
+      font-weight: 800;
+      cursor: default;
+    }
+
+    .breadcrumb-sep {
+      color: #94a3b8;
+      font-size: 10px;
+    }
+
+    /* Resumen de KPIs de Nivel */
+    .level-hero-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      border-bottom: 1px solid var(--border-light);
+      padding-bottom: 16px;
+    }
+
+    .level-title-group h2 {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text-title);
+      letter-spacing: -0.02em;
+    }
+
+    .level-title-group p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .level-badges {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .badge-chip {
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      background-color: var(--primary-subtle);
+      color: var(--primary-solid);
+      border: 1px solid var(--primary-border);
+    }
+
+    /* Tarjetas de Resumen KPI */
+    .kpis-banner-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+
+    .kpi-stat-card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-light);
+      border-radius: 14px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .kpi-stat-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .kpi-stat-val {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--primary-solid);
+      line-height: 1.1;
+    }
+
+    .kpi-stat-desc {
+      font-size: 11.5px;
+      color: var(--text-muted);
+    }
+
+    /* Grilla de Drill-down interactiva */
+    .drilldown-container {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .section-headline {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--text-title);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .entities-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 14px;
+    }
+
+    .entity-card {
+      background-color: #ffffff;
+      border: 1px solid var(--border-light);
+      border-radius: 14px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      cursor: pointer;
+      transition: var(--transition-fast);
+      position: relative;
+    }
+
+    .entity-card:hover {
+      border-color: var(--primary-solid);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(1, 99, 172, 0.08);
+    }
+
+    .entity-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .entity-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-title);
+    }
+
+    .entity-tag-count {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: var(--radius-pill);
+      background-color: #e0f2fe;
+      color: #0369a1;
+    }
+
+    .entity-desc {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .entity-kpi-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid var(--border-light);
+      padding-top: 8px;
+      font-size: 11.5px;
+    }
+
+    .entity-action-link {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--primary-solid);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Modal / Toast */
+    .toast-msg {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background-color: #0f172a;
+      color: #ffffff;
+      padding: 12px 18px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.2s ease;
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    .toast-msg.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- CABECERA INSTITUCIONAL SUNAT -->
+  <header class="top-institutional-bar">
+    <div class="inst-label">
+      <i class="fa-solid fa-layer-group" style="color: var(--primary-solid);"></i>
+      <span>SITRA &bull; SUNAT</span>
+      <span class="inst-tag">RS N.° 000103-2023/SUNAT</span>
+      <span class="inst-tag" style="background-color: #f1f5f9; color: #475569;">21 ITIs &bull; 94 CSCs Oficiales</span>
+    </div>
+    <div style="display: flex; gap: 8px; align-items: center; font-size: 12.5px; color: var(--text-muted);">
+      <i class="fa-solid fa-circle-check" style="color: #10b981;"></i> Datos oficiales sincronizados
+    </div>
+  </header>
+
+  <!-- CONTENEDOR GENERAL -->
+  <div class="app-layout">
+
+    <!-- ================================================================= -->
+    <!-- SIDEBAR REESTRUCTURADO SIN REDUNDANCIAS                           -->
+    <!-- ================================================================= -->
+    <aside class="sidebar-sitra" id="sitra-sidebar">
+      
+      <!-- LOGO INSTITUCIONAL -->
+      <div class="brand-block">
+        <div class="brand-icon-solid">
+          <i class="fa-solid fa-chart-simple"></i>
+        </div>
+        <div>
+          <div class="brand-main-title">SITRA</div>
+          <div class="brand-sub-title">Monitoreo Nacional SUNAT</div>
+        </div>
+      </div>
+
+      <!-- BUSCADOR PREDICTIVO DE CSCs Y SEDES -->
+      <div class="quick-search-box">
+        <i class="fa-solid fa-magnifying-glass quick-search-icon"></i>
+        <input type="text" id="input-search-csc" class="quick-search-input" placeholder="Buscar entre los 94 CSC..." oninput="filtrarEntidades(this.value)">
+      </div>
+
+      <!-- SECCIÓN 1: JERARQUÍA DE MONITOREO (DRILL-DOWN) -->
+      <div>
+        <div class="sidebar-section-title">Monitoreo Operativo</div>
+        <ul class="sidebar-nav">
+          <li>
+            <button class="nav-btn active" id="btn-nav-nacional" onclick="irNivelNacional()">
+              <i class="fa-solid fa-earth-americas"></i>
+              <span>Nivel Nacional</span>
+              <span class="badge-counter">21 ITI</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-btn" id="btn-nav-iti" onclick="toggleSubmenuItis()">
+              <i class="fa-solid fa-landmark"></i>
+              <span>Por Intendencia (ITI)</span>
+              <i class="fa-solid fa-chevron-down" style="margin-left: auto; font-size: 11px;"></i>
+            </button>
+            <!-- Submenú de las principales ITIs -->
+            <ul class="submenu-list" id="submenu-itis" style="display: none;">
+              <li class="submenu-item" onclick="irNivelIti('iti_lima')">Intendencia Lima <span style="font-size: 11px;">14 CSC</span></li>
+              <li class="submenu-item" onclick="irNivelIti('iti_junin')">ITI Junín <span style="font-size: 11px;">8 CSC</span></li>
+              <li class="submenu-item" onclick="irNivelIti('iti_arequipa')">ITI Arequipa <span style="font-size: 11px;">6 CSC</span></li>
+              <li class="submenu-item" onclick="irNivelIti('iti_cusco')">ITI Cusco <span style="font-size: 11px;">8 CSC</span></li>
+              <li class="submenu-item" onclick="irNivelIti('iti_lalibertad')">ITI La Libertad <span style="font-size: 11px;">7 CSC</span></li>
+              <li class="submenu-item" onclick="irNivelIti('iti_piura')">ITI Piura <span style="font-size: 11px;">6 CSC</span></li>
+            </ul>
+          </li>
+          <li>
+            <button class="nav-btn" id="btn-nav-csc" onclick="irNivelCsc('huancayo', 'iti_junin')">
+              <i class="fa-solid fa-location-dot"></i>
+              <span>Tablero por CSC</span>
+              <span class="badge-counter">94</span>
+            </button>
+          </li>
+        </ul>
+      </div>
+
+      <!-- SECCIÓN 2: HERRAMIENTAS Y CONSULTAS -->
+      <div>
+        <div class="sidebar-section-title">Análisis & Herramientas</div>
+        <ul class="sidebar-nav">
+          <li>
+            <button class="nav-btn" onclick="notifyAction('Abriendo Reporte Histórico por Día...')">
+              <i class="fa-regular fa-calendar-days"></i>
+              <span>Reporte por Día</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-btn" onclick="notifyAction('Abriendo Guía de Preguntas Frecuentes (tvm_preguntas)...')">
+              <i class="fa-regular fa-circle-question"></i>
+              <span>Guía de Preguntas</span>
+            </button>
+          </li>
+        </ul>
+      </div>
+
+      <!-- SECCIÓN 3: ADMINISTRACIÓN INSTITUCIONAL -->
+      <div>
+        <div class="sidebar-section-title">Administración</div>
+        <ul class="sidebar-nav">
+          <li>
+            <button class="nav-btn" onclick="notifyAction('Abriendo panel de conexiones y servidores...')">
+              <i class="fa-solid fa-network-wired"></i>
+              <span>Conexiones & Red</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-btn" onclick="notifyAction('Abriendo gestión de Directivos...')">
+              <i class="fa-solid fa-users-gear"></i>
+              <span>Gestión de Directivos</span>
+            </button>
+          </li>
+        </ul>
+      </div>
+
+      <!-- PIE DE USUARIO INSTITUCIONAL (SIN 'UPGRADE' NI 'YOUR PLAN') -->
+      <div class="user-institutional-card">
+        <div class="user-info-box">
+          <div class="user-avatar-circle">AZ</div>
+          <div class="user-meta-details">
+            <span class="user-official-name">Alejandro Zorrilla</span>
+            <span class="user-official-role">Analista &bull; Directivo SUNAT</span>
+          </div>
+          <button class="btn-logout-clean" title="Cerrar sesión" onclick="notifyAction('Cerrando sesión institucional...')">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+          </button>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- ================================================================= -->
+    <!-- ÁREA PRINCIPAL: DEMO DEL FLUJO DRILL-DOWN (3 NIVELES)             -->
+    <!-- ================================================================= -->
+    <main class="main-stage-preview">
+      
+      <!-- BREADCRUMB DINÁMICO DE NAVEGACIÓN -->
+      <nav class="breadcrumb-bar" id="breadcrumb-bar" aria-label="Ruta de navegación">
+        <span class="breadcrumb-item" onclick="irNivelNacional()"><i class="fa-solid fa-earth-americas"></i> Nacional</span>
+        <span class="breadcrumb-sep"><i class="fa-solid fa-chevron-right"></i></span>
+        <span class="breadcrumb-item current" id="bc-nivel-2">21 Intendencias</span>
+      </nav>
+
+      <!-- CABECERA DEL NIVEL ACTUAL -->
+      <div class="level-hero-header">
+        <div class="level-title-group">
+          <h2 id="header-level-title">Monitoreo Nacional de Tiempos</h2>
+          <p id="header-level-desc">Supervisión integral de las 21 Intendencias de Tributos Internos y sus 94 Centros de Servicios al Contribuyente.</p>
+        </div>
+        <div class="level-badges">
+          <span class="badge-chip" id="badge-total-entities"><i class="fa-solid fa-landmark"></i> 21 ITIs Registradas</span>
+          <span class="badge-chip" style="background-color: #ecfdf5; color: #059669; border-color: #a7f3d0;"><i class="fa-solid fa-shield-halved"></i> SLA Meta: &ge; 90%</span>
+        </div>
+      </div>
+
+      <!-- BANNER DE KPIS DEL NIVEL ACTUAL -->
+      <div class="kpis-banner-grid" id="kpis-banner-grid">
+        <div class="kpi-stat-card">
+          <span class="kpi-stat-label">Tickets Atendidos Hoy</span>
+          <span class="kpi-stat-val" id="kpi-val-atendidos">6,585</span>
+          <span class="kpi-stat-desc">En los 94 CSC a nivel nacional</span>
+        </div>
+        <div class="kpi-stat-card">
+          <span class="kpi-stat-label">En Cola Actualmente</span>
+          <span class="kpi-stat-val" id="kpi-val-cola">302</span>
+          <span class="kpi-stat-desc">Esperando asignación a ventanilla</span>
+        </div>
+        <div class="kpi-stat-card">
+          <span class="kpi-stat-label">Cumplimiento SLA (&lt; 15 min)</span>
+          <span class="kpi-stat-val" style="color: #059669;" id="kpi-val-sla">95.2%</span>
+          <span class="kpi-stat-desc">Meta institucional cumplida</span>
+        </div>
+        <div class="kpi-stat-card">
+          <span class="kpi-stat-label">Tiempo Atención Promedio</span>
+          <span class="kpi-stat-val" id="kpi-val-ta">07:46</span>
+          <span class="kpi-stat-desc">Meta BSC: &le; 08:00 min</span>
+        </div>
+      </div>
+
+      <!-- CONTENEDOR DE ELEMENTOS DEL NIVEL (DRILL-DOWN) -->
+      <div class="drilldown-container">
+        <div class="section-headline">
+          <span id="label-section-grid"><i class="fa-solid fa-list-check" style="color: var(--primary-solid);"></i> Intendencias de Tributos Internos (ITI)</span>
+          <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">Haz clic en una ITI para subentrar a sus CSCs</span>
+        </div>
+
+        <div class="entities-grid" id="entities-grid">
+          <!-- Se llena dinámicamente con las 21 intendencias o los CSCs -->
+        </div>
+      </div>
+
+    </main>
+
+  </div>
+
+  <!-- TOAST FEEDBACK -->
+  <div class="toast-msg" id="toast-box">
+    <i class="fa-solid fa-circle-check" style="color: #38bdf8;"></i>
+    <span id="toast-text">Acción realizada</span>
+  </div>
+
+  <script>
+    // CATÁLOGO OFICIAL DE LAS 21 INTENDENCIAS Y 94 CSC (RS N.° 000103-2023/SUNAT)
+    const CATALOGO_SUNAT = [
+      {
+        codigo: "iti_lima",
+        nombre: "Intendencia Lima",
+        siglas: "INTENDENCIA LIMA",
+        region: "LIMA",
+        jurisdiccion: "Callao (todo); Lima (solo Cañete, Canta, Huarochirí, Lima, Yauyos)",
+        cscs: ["Cañete", "Ate", "Barranco", "Callao", "Gamarra", "La Victoria", "Arenales", "Los Olivos", "Pueblo Libre", "Puente Piedra", "San Isidro", "San Juan de Lurigancho", "Surco", "Villa El Salvador"]
+      },
+      {
+        codigo: "iti_arequipa",
+        nombre: "ITI Arequipa",
+        siglas: "ITI AREQUIPA",
+        region: "AREQUIPA",
+        jurisdiccion: "Arequipa (todo); Moquegua (solo General Sánchez Cerro excepto 5 distritos)",
+        cscs: ["Arequipa", "La Tomilla", "Paucarpata", "Camaná", "El Pedregal", "Mollendo"]
+      },
+      {
+        codigo: "iti_lalibertad",
+        nombre: "ITI La Libertad",
+        siglas: "ITI LA LIBERTAD",
+        region: "LA LIBERTAD",
+        jurisdiccion: "La Libertad (todo)",
+        cscs: ["Casa Grande", "Chepén", "Huamachuco", "Trujillo", "Unión", "Las Quintanas", "Pacasmayo"]
+      },
+      {
+        codigo: "iti_ayacucho",
+        nombre: "ITI Ayacucho",
+        siglas: "ITI AYACUCHO",
+        region: "AYACUCHO",
+        jurisdiccion: "Ayacucho (todo); Salvedad: Kimbiri y Pichari (La Convención, Cusco)",
+        cscs: ["Ayacucho", "Huanta", "Kimbiri", "Pichari"]
+      },
+      {
+        codigo: "iti_cajamarca",
+        nombre: "ITI Cajamarca",
+        siglas: "ITI CAJAMARCA",
+        region: "CAJAMARCA",
+        jurisdiccion: "Cajamarca (todo)",
+        cscs: ["Cajamarca", "Jaén", "Chota"]
+      },
+      {
+        codigo: "iti_chimbote",
+        nombre: "ITI Chimbote",
+        siglas: "ITI CHIMBOTE",
+        region: "ÁNCASH",
+        jurisdiccion: "Áncash (solo Casma, Corongo, Huarmey, Pallasca, Santa, Sihuas)",
+        cscs: ["Nuevo Chimbote", "Chimbote"]
+      },
+      {
+        codigo: "iti_cusco",
+        nombre: "ITI Cusco",
+        siglas: "ITI CUSCO",
+        region: "CUSCO",
+        jurisdiccion: "Cusco (todo); Apurímac (todo) (excepto Kimbiri y Pichari)",
+        cscs: ["Abancay", "Andahuaylas", "Cusco", "Quillabamba", "Sicuani", "San Sebastian", "Urubamba", "Espinar"]
+      },
+      {
+        codigo: "iti_huacho",
+        nombre: "ITI Huacho",
+        siglas: "ITI HUACHO",
+        region: "LIMA PROVINCIAS",
+        jurisdiccion: "Lima (solo Barranca, Cajatambo, Huaral, Huaura, Oyón)",
+        cscs: ["Barranca", "Huaral", "Huacho"]
+      },
+      {
+        codigo: "iti_huanuco",
+        nombre: "ITI Huánuco",
+        siglas: "ITI HUÁNUCO",
+        region: "HUÁNUCO",
+        jurisdiccion: "Huánuco (todo); Pasco (todo, excepto Oxapampa)",
+        cscs: ["Huánuco", "Tingo María", "Pasco"]
+      },
+      {
+        codigo: "iti_huaraz",
+        nombre: "ITI Huaraz",
+        siglas: "ITI HUARAZ",
+        region: "ÁNCASH",
+        jurisdiccion: "Áncash (todo, excepto Casma, Corongo, Huarmey, Pallasca, Santa, Sihuas)",
+        cscs: ["Huaraz", "Caraz", "Huari"]
+      },
+      {
+        codigo: "iti_ica",
+        nombre: "ITI Ica",
+        siglas: "ITI ICA",
+        region: "ICA",
+        jurisdiccion: "Huancavelica (solo Huaytará); Ica (todo)",
+        cscs: ["Chincha", "Ica", "Pisco", "Nasca"]
+      },
+      {
+        codigo: "iti_juliaca",
+        nombre: "ITI Juliaca",
+        siglas: "ITI JULIACA",
+        region: "PUNO",
+        jurisdiccion: "Puno (todo)",
+        cscs: ["Juliaca", "Puno", "Desaguadero"]
+      },
+      {
+        codigo: "iti_junin",
+        nombre: "ITI Junín",
+        siglas: "ITI JUNÍN",
+        region: "JUNÍN",
+        jurisdiccion: "Huancavelica (todo, excepto Huaytará); Junín (todo); Pasco (solo Oxapampa)",
+        cscs: ["Huancavelica", "Chanchamayo", "Huancayo", "La Oroya", "Satipo", "Tarma", "Oxapampa"]
+      },
+      {
+        codigo: "iti_lambayeque",
+        nombre: "ITI Lambayeque",
+        siglas: "ITI LAMBAYEQUE",
+        region: "LAMBAYEQUE",
+        jurisdiccion: "Amazonas (todo); Lambayeque (todo)",
+        cscs: ["Chachapoyas", "Bagua Grande", "Balta", "José Leonardo Ortíz"]
+      },
+      {
+        codigo: "iti_loreto",
+        nombre: "ITI Loreto",
+        siglas: "ITI LORETO",
+        region: "LORETO",
+        jurisdiccion: "Loreto (todo, excepto Alto Amazonas, Ucayali); Salvedad 4 distritos",
+        cscs: ["Punchana", "Iquitos"]
+      },
+      {
+        codigo: "iti_madrededios",
+        nombre: "ITI Madre de Dios",
+        siglas: "ITI MADRE DE DIOS",
+        region: "MADRE DE DIOS",
+        jurisdiccion: "Madre de Dios (todo)",
+        cscs: ["Madre de Dios"]
+      },
+      {
+        codigo: "iti_piura",
+        nombre: "ITI Piura",
+        siglas: "ITI PIURA",
+        region: "PIURA",
+        jurisdiccion: "Piura (todo)",
+        cscs: ["Chulucanas", "Paita", "Piura", "Sullana", "Talara", "Sechura"]
+      },
+      {
+        codigo: "iti_sanmartin",
+        nombre: "ITI San Martín",
+        siglas: "ITI SAN MARTÍN",
+        region: "SAN MARTÍN",
+        jurisdiccion: "Loreto (solo Alto Amazonas); San Martín (todo)",
+        cscs: ["Yurimaguas", "Moyobamba", "Tarapoto", "Tocache", "Juanjui", "Nueva Cajamarca"]
+      },
+      {
+        codigo: "iti_tacna",
+        nombre: "ITI Tacna",
+        siglas: "ITI TACNA",
+        region: "TACNA",
+        jurisdiccion: "Moquegua (todo, excepto General Sánchez Cerro); Tacna (todo); Salvedad 5 distritos",
+        cscs: ["Ilo", "Moquegua", "Tacna"]
+      },
+      {
+        codigo: "iti_tumbes",
+        nombre: "ITI Tumbes",
+        siglas: "ITI TUMBES",
+        region: "TUMBES",
+        jurisdiccion: "Tumbes (todo)",
+        cscs: ["Aguas Verdes", "Tumbes"]
+      },
+      {
+        codigo: "iti_ucayali",
+        nombre: "ITI Ucayali",
+        siglas: "ITI UCAYALI",
+        region: "UCAYALI",
+        jurisdiccion: "Loreto (solo Ucayali); Ucayali (todo)",
+        cscs: ["Raymondi", "Salvador Allende"]
+      }
+    ];
+
+    let estadoActual = {
+      nivel: "nacional", // "nacional", "iti", "csc"
+      itiSeleccionada: null,
+      cscSeleccionado: null
+    };
+
+    function renderizarNivelNacional() {
+      estadoActual.nivel = "nacional";
+      estadoActual.itiSeleccionada = null;
+      estadoActual.cscSeleccionado = null;
+
+      // Actualizar Breadcrumb
+      const bc = document.getElementById('breadcrumb-bar');
+      bc.innerHTML = `
+        <span class="breadcrumb-item current"><i class="fa-solid fa-earth-americas"></i> Nivel Nacional</span>
+        <span class="breadcrumb-sep"><i class="fa-solid fa-chevron-right"></i></span>
+        <span style="color: var(--text-muted); font-size: 12px;">21 Intendencias</span>
+      `;
+
+      // Header
+      document.getElementById('header-level-title').textContent = "Monitoreo Nacional de Tiempos";
+      document.getElementById('header-level-desc').textContent = "Supervisión consolidada de las 21 Intendencias de Tributos Internos y sus 94 Centros de Servicios.";
+      document.getElementById('badge-total-entities').innerHTML = `<i class="fa-solid fa-landmark"></i> 21 ITIs Registradas`;
+      document.getElementById('label-section-grid').innerHTML = `<i class="fa-solid fa-landmark" style="color: var(--primary-solid);"></i> Intendencias de Tributos Internos (21 ITIs)`;
+
+      // KPIs
+      document.getElementById('kpi-val-atendidos').textContent = "6,585";
+      document.getElementById('kpi-val-cola').textContent = "302";
+      document.getElementById('kpi-val-sla').textContent = "95.2%";
+      document.getElementById('kpi-val-ta').textContent = "07:46";
+
+      // Renderizar las 21 tarjetas de ITI
+      const grid = document.getElementById('entities-grid');
+      grid.innerHTML = CATALOGO_SUNAT.map(iti => `
+        <div class="entity-card" onclick="irNivelIti('${iti.codigo}')">
+          <div class="entity-card-header">
+            <span class="entity-title">${iti.nombre}</span>
+            <span class="entity-tag-count">${iti.cscs.length} CSC</span>
+          </div>
+          <div class="entity-desc">${iti.jurisdiccion}</div>
+          <div class="entity-kpi-row">
+            <span><i class="fa-solid fa-circle-check" style="color: #10b981;"></i> SLA: 95.8%</span>
+            <span class="entity-action-link">Subentrar a ITI <i class="fa-solid fa-arrow-right"></i></span>
+          </div>
+        </div>
+      `).join('');
+
+      actualizarBotonesNav('btn-nav-nacional');
+    }
+
+    function irNivelIti(codigoIti) {
+      const iti = CATALOGO_SUNAT.find(i => i.codigo === codigoIti);
+      if (!iti) return;
+
+      estadoActual.nivel = "iti";
+      estadoActual.itiSeleccionada = iti;
+      estadoActual.cscSeleccionado = null;
+
+      // Actualizar Breadcrumb con enlace para volver a Nacional
+      const bc = document.getElementById('breadcrumb-bar');
+      bc.innerHTML = `
+        <span class="breadcrumb-item" onclick="irNivelNacional()"><i class="fa-solid fa-earth-americas"></i> Nacional</span>
+        <span class="breadcrumb-sep"><i class="fa-solid fa-chevron-right"></i></span>
+        <span class="breadcrumb-item current"><i class="fa-solid fa-landmark"></i> ${iti.nombre}</span>
+        <span class="breadcrumb-sep"><i class="fa-solid fa-chevron-right"></i></span>
+        <span style="color: var(--text-muted); font-size: 12px;">${iti.cscs.length} CSCs</span>
+      `;
+
+      // Header
+      document.getElementById('header-level-title').textContent = `${iti.nombre} (${iti.siglas})`;
+      document.getElementById('header-level-desc').textContent = `${iti.jurisdiccion} &bull; Total: ${iti.cscs.length} Centros de Servicios al Contribuyente.`;
+      document.getElementById('badge-total-entities').innerHTML = `<i class="fa-solid fa-building"></i> ${iti.cscs.length} CSCs en Jurisdicción`;
+      document.getElementById('label-section-grid').innerHTML = `<i class="fa-solid fa-building" style="color: var(--primary-solid);"></i> Centros de Servicios de ${iti.nombre}`;
+
+      // KPIs de la ITI
+      const factor = iti.cscs.length;
+      document.getElementById('kpi-val-atendidos').textContent = String(factor * 95);
+      document.getElementById('kpi-val-cola').textContent = String(factor * 4);
+      document.getElementById('kpi-val-sla').textContent = (94.0 + (factor % 5)).toFixed(1) + "%";
+      document.getElementById('kpi-val-ta').textContent = "06:" + String(35 + (factor % 20)).padStart(2, '0');
+
+      // Renderizar los CSCs de esta ITI
+      const grid = document.getElementById('entities-grid');
+      grid.innerHTML = iti.cscs.map(cscName => `
+        <div class="entity-card" onclick="irNivelCsc('${cscName}', '${iti.codigo}')">
+          <div class="entity-card-header">
+            <span class="entity-title">CSC ${cscName}</span>
+            <span class="entity-tag-count" style="background-color: #ecfdf5; color: #059669;">En Línea</span>
+          </div>
+          <div class="entity-desc">Sede operativa adscrita a ${iti.nombre}. Monitoreo en vivo de tickets y ventanillas.</div>
+          <div class="entity-kpi-row">
+            <span><i class="fa-solid fa-clock" style="color: var(--primary-solid);"></i> En cola: 3</span>
+            <span class="entity-action-link">Ver Tablero Operativo <i class="fa-solid fa-arrow-right"></i></span>
+          </div>
+        </div>
+      `).join('');
+
+      actualizarBotonesNav('btn-nav-iti');
+      notifyAction(`Subentraste a: ${iti.nombre} (${iti.cscs.length} CSCs)`);
+    }
+
+    function irNivelCsc(nombreCsc, codigoIti) {
+      let iti = CATALOGO_SUNAT.find(i => i.codigo === codigoIti);
+      if (!iti) iti = CATALOGO_SUNAT.find(i => i.cscs.includes(nombreCsc)) || CATALOGO_SUNAT[12]; // ITI Junín por defecto
+
+      estadoActual.nivel = "csc";
+      estadoActual.itiSeleccionada = iti;
+      estadoActual.cscSeleccionado = nombreCsc;
+
+      // Actualizar Breadcrumb
+      const bc = document.getElementById('breadcrumb-bar');
+      bc.innerHTML = `
+        <span class="breadcrumb-item" onclick="irNivelNacional()"><i class="fa-solid fa-earth-americas"></i> Nacional</span>
+        <span class="breadcrumb-sep"><i class="fa-solid fa-chevron-right"></i></span>
+        <span class="breadcrumb-item" onclick="irNivelIti('${iti.codigo}')"><i class="fa-solid fa-landmark"></i> ${iti.nombre}</span>
+        <span class="breadcrumb-sep"><i class="fa-solid fa-chevron-right"></i></span>
+        <span class="breadcrumb-item current"><i class="fa-solid fa-location-dot"></i> CSC ${nombreCsc}</span>
+      `;
+
+      // Header
+      document.getElementById('header-level-title').textContent = `Tablero Operativo &bull; CSC ${nombreCsc}`;
+      document.getElementById('header-level-desc').textContent = `Monitoreo en tiempo real de colas, ventanillas y tiempos de atención en CSC ${nombreCsc} (${iti.nombre}).`;
+      document.getElementById('badge-total-entities').innerHTML = `<i class="fa-solid fa-circle-dot" style="color: #10b981;"></i> Servidor Conectado`;
+      document.getElementById('label-section-grid').innerHTML = `<i class="fa-solid fa-table-list" style="color: var(--primary-solid);"></i> Módulos y Ventanillas de CSC ${nombreCsc}`;
+
+      // KPIs
+      document.getElementById('kpi-val-atendidos').textContent = "128";
+      document.getElementById('kpi-val-cola').textContent = "4";
+      document.getElementById('kpi-val-sla').textContent = "96.4%";
+      document.getElementById('kpi-val-ta').textContent = "06:18";
+
+      // Vista del CSC
+      const grid = document.getElementById('entities-grid');
+      grid.innerHTML = `
+        <div class="entity-card" style="cursor: default; border-color: var(--primary-solid);">
+          <div class="entity-card-header">
+            <span class="entity-title"><i class="fa-regular fa-clock" style="color: #f59e0b;"></i> Tickets en Cola (4)</span>
+            <span class="entity-tag-count">En Espera</span>
+          </div>
+          <div class="entity-desc">
+            &bull; Ticket <strong>T04</strong> &bull; Espera: 08:15 min (Verde)<br>
+            &bull; Ticket <strong>O12</strong> &bull; Espera: 05:40 min (Verde)<br>
+            &bull; Ticket <strong>M02</strong> &bull; Espera: 03:22 min (Verde)
+          </div>
+        </div>
+
+        <div class="entity-card" style="cursor: default;">
+          <div class="entity-card-header">
+            <span class="entity-title"><i class="fa-solid fa-headset" style="color: #10b981;"></i> Ventanillas en Atención (5)</span>
+            <span class="entity-tag-count" style="background-color: #ecfdf5; color: #059669;">Activas</span>
+          </div>
+          <div class="entity-desc">
+            &bull; V-1: Gestor Carlos Q. &bull; Ticket T01 (04:12 min)<br>
+            &bull; V-2: Gestora Edith H. &bull; Ticket O09 (06:45 min)<br>
+            &bull; V-3: Gestor Marco P. &bull; Ticket C03 (02:10 min)
+          </div>
+        </div>
+
+        <div class="entity-card" style="cursor: default;">
+          <div class="entity-card-header">
+            <span class="entity-title"><i class="fa-solid fa-chart-column" style="color: var(--primary-solid);"></i> Histograma de Demanda</span>
+            <span class="entity-tag-count">Pico: 11:30</span>
+          </div>
+          <div class="entity-desc">
+            Mayor afluencia registrada entre 10:30 y 12:00 hrs. Capacidad operativa actual al 88%.
+          </div>
+        </div>
+      `;
+
+      actualizarBotonesNav('btn-nav-csc');
+      notifyAction(`Abriendo Tablero Operativo: CSC ${nombreCsc}`);
+    }
+
+    function toggleSubmenuItis() {
+      const sub = document.getElementById('submenu-itis');
+      const isHidden = sub.style.display === 'none';
+      sub.style.display = isHidden ? 'flex' : 'none';
+    }
+
+    function filtrarEntidades(query) {
+      const q = query.trim().toLowerCase();
+      if (!q) {
+        if (estadoActual.nivel === "nacional") renderizarNivelNacional();
+        else if (estadoActual.nivel === "iti") irNivelIti(estadoActual.itiSeleccionada.codigo);
+        return;
+      }
+
+      // Buscar entre todos los 94 CSC
+      let resultados = [];
+      CATALOGO_SUNAT.forEach(iti => {
+        iti.cscs.forEach(csc => {
+          if (csc.toLowerCase().includes(q) || iti.nombre.toLowerCase().includes(q)) {
+            resultados.push({ csc, iti });
+          }
+        });
+      });
+
+      const grid = document.getElementById('entities-grid');
+      document.getElementById('label-section-grid').innerHTML = `<i class="fa-solid fa-magnifying-glass"></i> Resultados para "${query}" (${resultados.length} CSC encontrados)`;
+
+      if (resultados.length === 0) {
+        grid.innerHTML = `<div style="grid-column: 1 / -1; padding: 20px; color: var(--text-muted); text-align: center;">No consta en la relación oficial de SUNAT ningún CSC o ITI con ese nombre.</div>`;
+        return;
+      }
+
+      grid.innerHTML = resultados.slice(0, 18).map(r => `
+        <div class="entity-card" onclick="irNivelCsc('${r.csc}', '${r.iti.codigo}')">
+          <div class="entity-card-header">
+            <span class="entity-title">CSC ${r.csc}</span>
+            <span class="entity-tag-count">${r.iti.siglas}</span>
+          </div>
+          <div class="entity-desc">Jurisdicción de ${r.iti.nombre}. Haz clic para entrar directo al tablero operativo de esta sede.</div>
+          <div class="entity-kpi-row">
+            <span><i class="fa-solid fa-landmark"></i> ${r.iti.nombre}</span>
+            <span class="entity-action-link">Entrar <i class="fa-solid fa-arrow-right"></i></span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function actualizarBotonesNav(btnId) {
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      const btn = document.getElementById(btnId);
+      if (btn) btn.classList.add('active');
+    }
+
+    function notifyAction(text) {
+      const toast = document.getElementById('toast-box');
+      document.getElementById('toast-text').textContent = text;
+      toast.classList.add('visible');
+      setTimeout(() => toast.classList.remove('visible'), 2600);
+    }
+
+    // Inicializar en Nivel Nacional
+    window.addEventListener('DOMContentLoaded', () => {
+      renderizarNivelNacional();
+    });
+  </script>
+</body>
+</html>

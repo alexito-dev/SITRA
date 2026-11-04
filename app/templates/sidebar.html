@@ -1,0 +1,282 @@
+<!-- =====================================================================
+     SIDEBAR INSTITUCIONAL SITRA - NAVEGACIÓN JERÁRQUICA NACIONAL SUNAT
+     (21 Intendencias de Tributos Internos y 94 Centros de Servicios)
+     ===================================================================== -->
+<aside class="sidebar-sitra" id="sitra-sidebar">
+  
+  <!-- LOGO INSTITUCIONAL Y MARCA -->
+  <div class="brand-block">
+    <div class="brand-icon-solid" title="SITRA - SUNAT" onclick="toggleSidebarCollapse()" style="cursor: pointer;">
+      <i class="fa-solid fa-chart-simple"></i>
+    </div>
+    <div class="brand-text-wrap">
+      <a href="/nacional" class="brand-main-title" style="text-decoration: none; color: inherit;">SITRA</a>
+      <span class="brand-sub-title">Monitoreo Nacional SUNAT</span>
+    </div>
+    <button type="button" id="btn-toggle-sidebar" class="btn-sidebar-toggle" title="Colapsar / Expandir menú lateral" onclick="toggleSidebarCollapse()">
+      <i class="fa-solid fa-angles-left"></i>
+    </button>
+  </div>
+
+  <!-- BUSCADOR RÁPIDO PREDICTIVO (94 CSCs) -->
+  <div class="quick-search-box">
+    <i class="fa-solid fa-magnifying-glass quick-search-icon"></i>
+    <input type="text" id="sidebar-quick-search" class="quick-search-input" placeholder="Buscar sede (94 CSC)..." autocomplete="off" oninput="buscarSedeSidebar(this.value)">
+    <div id="sidebar-search-results" class="sidebar-search-popover" style="display: none;"></div>
+  </div>
+
+  <!-- SECCIÓN 1: JERARQUÍA DE MONITOREO -->
+  <div class="sidebar-group">
+    <div class="sidebar-section-title">Monitoreo Operativo</div>
+    <ul class="sidebar-nav">
+      <li>
+        <a href="/nacional" class="nav-btn {% if nivel == 'nacional' or (not sede_actual and not intendencia_actual) %}active{% endif %}" id="nav-btn-nacional" title="Ver las 21 Intendencias de Tributos Internos">
+          <i class="fa-solid fa-earth-americas"></i>
+          <span>Nivel Nacional</span>
+          <span class="badge-counter">21 ITI</span>
+        </a>
+      </li>
+      <li>
+        <button type="button" class="nav-btn {% if nivel == 'iti' %}active{% endif %}" id="nav-btn-iti" onclick="toggleSidebarItisMenu()" title="Ver Centros de Servicios por Intendencia">
+          <i class="fa-solid fa-landmark"></i>
+          <span>Por Intendencia</span>
+          <i class="fa-solid fa-chevron-down" id="chevron-itis" style="margin-left: auto; font-size: 10px; transition: transform 0.2s;"></i>
+        </button>
+        <!-- Desplegable de las 21 ITIs -->
+        <ul class="submenu-list" id="sidebar-submenu-itis" style="display: {% if nivel == 'iti' %}flex{% else %}none{% endif %};">
+          <li class="submenu-item {% if intendencia_actual and intendencia_actual.codigo == 'iti_lima' %}active{% endif %}" onclick="window.location.href='/intendencia/iti_lima'">
+            <span>Intendencia Lima</span>
+            <span class="sub-counter">14 CSC</span>
+          </li>
+          <li class="submenu-item {% if intendencia_actual and intendencia_actual.codigo == 'iti_junin' %}active{% endif %}" onclick="window.location.href='/intendencia/iti_junin'">
+            <span>ITI Junín</span>
+            <span class="sub-counter">8 CSC</span>
+          </li>
+          <li class="submenu-item {% if intendencia_actual and intendencia_actual.codigo == 'iti_arequipa' %}active{% endif %}" onclick="window.location.href='/intendencia/iti_arequipa'">
+            <span>ITI Arequipa</span>
+            <span class="sub-counter">6 CSC</span>
+          </li>
+          <li class="submenu-item {% if intendencia_actual and intendencia_actual.codigo == 'iti_cusco' %}active{% endif %}" onclick="window.location.href='/intendencia/iti_cusco'">
+            <span>ITI Cusco</span>
+            <span class="sub-counter">8 CSC</span>
+          </li>
+          <li class="submenu-item {% if intendencia_actual and intendencia_actual.codigo == 'iti_lalibertad' %}active{% endif %}" onclick="window.location.href='/intendencia/iti_lalibertad'">
+            <span>ITI La Libertad</span>
+            <span class="sub-counter">7 CSC</span>
+          </li>
+          <li class="submenu-item {% if intendencia_actual and intendencia_actual.codigo == 'iti_piura' %}active{% endif %}" onclick="window.location.href='/intendencia/iti_piura'">
+            <span>ITI Piura</span>
+            <span class="sub-counter">6 CSC</span>
+          </li>
+          <li class="submenu-item" style="font-weight: 700; color: var(--primary-solid); border-top: 1px dashed var(--border-light);" onclick="window.location.href='/nacional'">
+            <span>Ver las 21 ITIs ➔</span>
+          </li>
+        </ul>
+      </li>
+      <li>
+        <a href="/sede/{{ sede_actual if sede_actual else 'huancayo' }}" class="nav-btn {% if nivel == 'csc' or sede_actual %}active{% endif %}" id="nav-btn-csc" title="Monitoreo operativo del CSC">
+          <i class="fa-solid fa-location-dot"></i>
+          <span>Tablero por CSC</span>
+          <span class="badge-counter">{% if sede_nombre %}{{ sede_nombre.replace('CSC ', '')[:9] }}{% else %}94 CSC{% endif %}</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <!-- SECCIÓN 2: HERRAMIENTAS Y ANÁLISIS -->
+  <div class="sidebar-group">
+    <div class="sidebar-section-title">Análisis & Herramientas</div>
+    <ul class="sidebar-nav">
+      <li>
+        <button type="button" class="nav-btn" id="btn-sidebar-reporte-dia" onclick="abrirModalReporteDiaGenerico()">
+          <i class="fa-regular fa-calendar-days" style="color: #10b981;"></i>
+          <span>Reporte por Día</span>
+        </button>
+      </li>
+      <li>
+        <button type="button" class="nav-btn" id="btn-sidebar-guia" onclick="abrirModalGuiaGenerico()">
+          <i class="fa-regular fa-circle-question" style="color: #3b82f6;"></i>
+          <span>Guía de Preguntas</span>
+        </button>
+      </li>
+    </ul>
+  </div>
+
+  <!-- SECCIÓN 3: ADMINISTRACIÓN (SOLO ADMINISTRADOR / DIRECTIVO) -->
+  {% if es_admin or es_detallado %}
+  <div class="sidebar-group">
+    <div class="sidebar-section-title">Administración</div>
+    <ul class="sidebar-nav">
+      <li>
+        <button type="button" class="nav-btn" id="btn-sidebar-conexiones" onclick="abrirModalConexionesGenerico()">
+          <i class="fa-solid fa-network-wired" style="color: #6366f1;"></i>
+          <span>Conexiones & Red</span>
+        </button>
+      </li>
+      {% if es_admin %}
+      <li>
+        <button type="button" class="nav-btn" id="btn-sidebar-directivos" onclick="abrirModalDirectivosGenerico()">
+          <i class="fa-solid fa-users-gear" style="color: #8b5cf6;"></i>
+          <span>Gestión Directivos</span>
+        </button>
+      </li>
+      {% endif %}
+    </ul>
+  </div>
+  {% endif %}
+
+  <!-- PIE DE USUARIO INSTITUCIONAL (SIN SAAS, SIN UPGRADE) -->
+  <div class="user-institutional-card">
+    <div class="user-info-box">
+      <div class="user-avatar-circle" title="Usuario: {{ usuario.login if usuario else 'SUNAT' }}">
+        {% if usuario and usuario.nombre %}
+          {{ usuario.nombre[:2].upper() }}
+        {% else %}
+          SN
+        {% endif %}
+      </div>
+      <div class="user-meta-details">
+        <span class="user-official-name" title="{{ usuario.nombre if usuario else 'Gestor SUNAT' }}">
+          {{ usuario.nombre if usuario else 'Gestor SUNAT' }}
+        </span>
+        <span class="user-official-role">
+          {% if usuario and usuario.ip %}
+            <i class="fa-solid fa-network-wired" style="font-size: 9.5px;"></i> {{ usuario.ip }} {% if usuario.es_local %}(Local){% else %}(En red){% endif %}
+          {% elif es_admin %}
+            Administrador SITRA
+          {% else %}
+            Directivo / Analista
+          {% endif %}
+        </span>
+      </div>
+      <a href="/logout" class="btn-logout-clean" title="Cerrar sesión institucional">
+        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+      </a>
+    </div>
+  </div>
+
+</aside>
+
+<script>
+  function toggleSidebarItisMenu() {
+    const sub = document.getElementById('sidebar-submenu-itis');
+    const chev = document.getElementById('chevron-itis');
+    if (!sub) return;
+    const isHidden = sub.style.display === 'none';
+    sub.style.display = isHidden ? 'flex' : 'none';
+    if (chev) chev.style.transform = isHidden ? 'rotate(180deg)' : 'none';
+  }
+
+  // Buscador rápido integrado en el sidebar (para saltar instantáneamente a cualquiera de los 94 CSC)
+  let _sedesCatalogoMemoria = null;
+  async function buscarSedeSidebar(query) {
+    const q = query.trim().toLowerCase();
+    const box = document.getElementById('sidebar-search-results');
+    if (!box) return;
+
+    if (!q) {
+      box.style.display = 'none';
+      box.innerHTML = '';
+      return;
+    }
+
+    if (!_sedesCatalogoMemoria) {
+      try {
+        const resp = await fetch('/api/sedes');
+        const d = await resp.json();
+        _sedesCatalogoMemoria = d.sedes || [];
+      } catch (e) {
+        _sedesCatalogoMemoria = [];
+      }
+    }
+
+    const matches = _sedesCatalogoMemoria.filter(s => 
+      s.nombre.toLowerCase().includes(q) || 
+      (s.codigo && s.codigo.toLowerCase().includes(q)) ||
+      (s.intendencia_nombre && s.intendencia_nombre.toLowerCase().includes(q))
+    ).slice(0, 8);
+
+    if (matches.length === 0) {
+      box.innerHTML = '<div class="search-popover-item empty">No consta en la relación de SUNAT</div>';
+    } else {
+      box.innerHTML = matches.map(s => `
+        <div class="search-popover-item" onclick="window.location.href='/sede/${s.codigo}'">
+          <div class="search-popover-name">${s.nombre}</div>
+          <div class="search-popover-sub">${s.intendencia_siglas || s.intendencia_codigo || 'SUNAT'}</div>
+        </div>
+      `).join('');
+    }
+    box.style.display = 'block';
+  }
+
+  // Cerrar popover de búsqueda al hacer clic fuera
+  document.addEventListener('click', (e) => {
+    const searchBox = document.querySelector('.quick-search-box');
+    const pop = document.getElementById('sidebar-search-results');
+    if (pop && searchBox && !searchBox.contains(e.target)) {
+      pop.style.display = 'none';
+    }
+  });
+
+  // Funciones puente genéricas para los modales
+  function abrirModalReporteDiaGenerico() {
+    const btn = document.getElementById('btn-abrir-reporte-dia');
+    if (btn) btn.click();
+    else if (typeof abrirReporteDiaModal === 'function') abrirReporteDiaModal();
+    else {
+      // Si estamos en comparativo, abrir modal correspondiente
+      const modal = document.getElementById('modal-reporte-dia');
+      if (modal) modal.style.display = 'flex';
+      else window.location.href = '/sede/huancayo#reporte';
+    }
+  }
+
+  function abrirModalGuiaGenerico() {
+    const btn = document.getElementById('btn-abrir-guia') || document.getElementById('btn-comp-guia');
+    if (btn) btn.click();
+    else {
+      const modal = document.getElementById('modal-guia');
+      if (modal) modal.style.display = 'flex';
+    }
+  }
+
+  function abrirModalConexionesGenerico() {
+    const btn = document.getElementById('btn-abrir-crud-conexiones');
+    if (btn) btn.click();
+    else {
+      const modal = document.getElementById('modal-crud-conexiones');
+      if (modal) modal.style.display = 'flex';
+      else window.location.href = '/comparativo#conexiones';
+    }
+  }
+
+  function abrirModalDirectivosGenerico() {
+    const btn = document.getElementById('btn-abrir-gestion-usuarios');
+    if (btn) btn.click();
+    else {
+      const modal = document.getElementById('modal-gestion-usuarios');
+      if (modal) modal.style.display = 'flex';
+    }
+  }
+
+  function toggleSidebarCollapse() {
+    const sb = document.getElementById('sitra-sidebar');
+    const btn = document.getElementById('btn-toggle-sidebar');
+    if (!sb) return;
+    const isCollapsed = sb.classList.toggle('collapsed');
+    localStorage.setItem('sitra_sb_collapsed', isCollapsed ? '1' : '0');
+    if (btn) {
+      btn.innerHTML = isCollapsed ? '<i class="fa-solid fa-angles-right"></i>' : '<i class="fa-solid fa-angles-left"></i>';
+      btn.title = isCollapsed ? 'Expandir menú lateral' : 'Colapsar menú lateral';
+    }
+  }
+  if (localStorage.getItem('sitra_sb_collapsed') === '1') {
+    const sb = document.getElementById('sitra-sidebar');
+    const btn = document.getElementById('btn-toggle-sidebar');
+    if (sb) sb.classList.add('collapsed');
+    if (btn) {
+      btn.innerHTML = '<i class="fa-solid fa-angles-right"></i>';
+      btn.title = 'Expandir menú lateral';
+    }
+  }
+</script>

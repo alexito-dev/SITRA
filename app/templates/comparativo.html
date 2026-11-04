@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SITRA - Monitoreo Multirregional de Tiempos</title>
+  <!-- Fuentes Google y FontAwesome (Inter Moderna Fintech / SaaS) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/static/vendor/leaflet/leaflet.css">
+  <link rel="stylesheet" href="/static/tablero.css?v={{ version }}">
+</head>
+<body class="page-comparativo" data-intervalo="{{ intervalo }}" data-nivel="{{ nivel }}" data-intendencia="{{ intendencia_actual.codigo if intendencia_actual else 'todas' }}">
+
+<!-- CABECERA EXCLUSIVA PARA IMPRESIÓN (PDF INSTITUCIONAL SUNAT) -->
+<div class="print-only-header">
+  <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #000; padding-bottom: 8px;">
+    <div>
+      <h2 style="font-size: 18px; margin: 0; font-weight: 800;">SUNAT - SISTEMA INTEGRAL DE TIEMPOS DE ATENCIÓN (SITRA)</h2>
+      <p style="font-size: 12px; margin: 2px 0 0 0; color: #333;">Reporte Ejecutivo y Cumplimiento de Metas SLA (Atención &lt; 15 min)</p>
+    </div>
+    <div style="text-align: right; font-size: 11px;">
+      <div><strong>Emisión:</strong> <span id="print-fecha-hora">--/--/---- --:--</span></div>
+      <div><strong>Régimen:</strong> Nacional (21 Intendencias de Tributos Internos)</div>
+    </div>
+  </div>
+</div>
+
+<div class="layout-with-sidebar">
+  {% include "sidebar.html" %}
+
+  <div class="main-content-layout">
+    <!-- CABECERA MINIMALISTA UNIFICADA (Nacional e ITI) -->
+    <header class="topbar-minimal">
+      <h1 class="topbar-minimal__title">
+        {% if nivel == 'nacional' %}
+          Monitoreo Nacional
+        {% elif nivel == 'iti' and intendencia_actual %}
+          {{ intendencia_actual.nombre }}
+        {% else %}
+          Monitoreo Nacional
+        {% endif %}
+      </h1>
+
+      <div class="topbar-minimal__meta">
+        <span class="meta-clock" title="Hora Oficial del Sistema">
+          <i class="fa-regular fa-clock"></i>
+          <span class="sitra-live-clock" id="sitra-topbar-clock">--:--:--</span>
+        </span>
+        <span class="meta-divider"></span>
+        <div class="meta-status-pill">
+          <span class="meta-dot"></span>
+          <span>En línea</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Contenedor invisible para compatibilidad técnica de scripts anteriores -->
+    <div style="display: none;" aria-hidden="true">
+      <span class="reloj" id="comp-reloj"></span>
+      <span id="comp-sello"></span>
+      <button type="button" id="btn-seg-cards"></button>
+      <button type="button" id="btn-seg-lista"></button>
+      <button type="button" id="btn-seg-mapa"></button>
+      <button type="button" id="btn-switch-cards-lista"></button>
+      <button type="button" id="btn-switch-mapa-reporte"></button>
+      <button type="button" id="btn-submode-cards"></button>
+      <button type="button" id="btn-submode-lista"></button>
+      <button type="button" id="btn-sound-toggle"></button>
+      <span id="nac-live-clock"></span>
+      <span id="iti-live-clock"></span>
+      <div id="hero-date-display"><span id="hero-date-str"></span></div>
+      <span id="hero-sync-time"></span>
+    </div>
+
+  <!-- CONTENIDO PRINCIPAL COMPARATIVO (SCROLL FLUIDO) -->
+  <main class="comparativo-content">
+
+    <!-- ====================================================================
+         VISTA 1: CARDS Y LISTA DE SEDES / ITIs
+         ==================================================================== -->
+    <div id="view-cards-lista">
+      
+      {% if nivel == 'nacional' %}
+      <!-- ====================================================================
+           DISEÑO EJECUTIVO DEL MONITOREO NACIONAL (21 ITIs) - FIEL AL MOCKUP
+           ==================================================================== -->
+      <div class="nacional-dashboard-wrap">
+        <!-- Grid de 4 Hero Cards con Sparklines -->
+        <section class="nacional-kpis-4-grid">
+          <!-- 1. Tickets en curso -->
+          <div class="kpi-card-modern">
+            <div class="kpi-card-icon icon--blue">
+              <i class="fa-solid fa-phone"></i>
+            </div>
+            <div class="kpi-card-body">
+              <span class="kpi-card-label">Tickets en curso</span>
+              <div class="kpi-card-val-row">
+                <span class="kpi-card-val" id="kpi-nac-tickets">0</span>
+                <span class="kpi-trend-pill trend--up" id="kpi-nac-tickets-trend">+12%</span>
+                <div class="kpi-sparkline">
+                  <svg viewBox="0 0 65 24" fill="none">
+                    <path d="M2 18 C15 18, 20 6, 32 10 C44 14, 50 4, 63 8" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round"/>
+                  </svg>
+                </div>
+              </div>
+              <span class="kpi-card-sub">en todas las ITI</span>
+            </div>
+          </div>
+
+          <!-- 2. En cola -->
+          <div class="kpi-card-modern">
+            <div class="kpi-card-icon icon--red">
+              <i class="fa-regular fa-clock"></i>
+            </div>
+            <div class="kpi-card-body">
+              <span class="kpi-card-label">En cola</span>
+              <div class="kpi-card-val-row">
+                <span class="kpi-card-val" id="kpi-nac-cola">0</span>
+                <span class="kpi-trend-pill trend--up" id="kpi-nac-cola-trend">+18%</span>
+                <div class="kpi-sparkline">
+                  <svg viewBox="0 0 65 24" fill="none">
+                    <path d="M2 19 C15 19, 22 14, 32 11 C42 8, 48 16, 63 9" stroke="#f87171" stroke-width="2.2" stroke-linecap="round"/>
+                  </svg>
+                </div>
+              </div>
+              <span class="kpi-card-sub">llamadas en espera</span>
+            </div>
+          </div>
+
+          <!-- 3. En atención -->
+          <div class="kpi-card-modern">
+            <div class="kpi-card-icon icon--green">
+              <i class="fa-solid fa-headset"></i>
+            </div>
+            <div class="kpi-card-body">
+              <span class="kpi-card-label">En atención</span>
+              <div class="kpi-card-val-row">
+                <span class="kpi-card-val" id="kpi-nac-atencion">0</span>
+                <span class="kpi-trend-pill trend--up" id="kpi-nac-atencion-trend">+9%</span>
+                <div class="kpi-sparkline">
+                  <svg viewBox="0 0 65 24" fill="none">
+                    <path d="M2 18 C14 18, 22 8, 34 12 C44 15, 52 5, 63 6" stroke="#34d399" stroke-width="2.2" stroke-linecap="round"/>
+                  </svg>
+                </div>
+              </div>
+              <span class="kpi-card-sub">gestores atendiendo</span>
+            </div>
+          </div>
+
+          <!-- 4. Gestores activos -->
+          <div class="kpi-card-modern">
+            <div class="kpi-card-icon icon--purple">
+              <i class="fa-solid fa-users"></i>
+            </div>
+            <div class="kpi-card-body">
+              <span class="kpi-card-label">Gestores activos</span>
+              <div class="kpi-card-val-row">
+                <span class="kpi-card-val" id="kpi-nac-agentes">0</span>
+                <span class="kpi-trend-pill trend--up" id="kpi-nac-agentes-trend">+4%</span>
+                <div class="kpi-sparkline">
+                  <svg viewBox="0 0 65 24" fill="none">
+                    <path d="M2 16 C12 16, 22 9, 34 13 C45 16, 52 7, 63 7" stroke="#c084fc" stroke-width="2.2" stroke-linecap="round"/>
+                  </svg>
+                </div>
+              </div>
+              <span class="kpi-card-sub">en ventanilla</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. Layout Principal en 2 Columnas -->
+        <section class="nacional-main-2col-layout">
+          <!-- Columna Izquierda: Sticky y sin espacios vacíos -->
+          <div class="nacional-left-col-sticky">
+            <!-- Card Ejecutiva de Monitoreo Nacional con Mapa y Ranking -->
+            <div class="card-nacional-exec">
+              <!-- Encabezado: Título a la izquierda y 4 Mini KPIs a la derecha -->
+              <div class="card-nacional-exec-header">
+                <div class="exec-header-text">
+                  <h3 class="exec-header-title">Monitoreo Nacional</h3>
+                  <p class="exec-header-sub">Estado de atención por ITI</p>
+                </div>
+                <div class="exec-header-kpis">
+                  <div class="exec-kpi-pill kpi-pill--green">
+                    <span class="exec-kpi-num text-green" id="stat-itis-en-meta">21</span>
+                    <span class="exec-kpi-label">ITI en meta</span>
+                  </div>
+                  <div class="exec-kpi-pill kpi-pill--amber">
+                    <span class="exec-kpi-num text-amber" id="stat-itis-alerta">0</span>
+                    <span class="exec-kpi-label">Alta demanda</span>
+                  </div>
+                  <div class="exec-kpi-pill kpi-pill--blue">
+                    <span class="exec-kpi-num text-blue" id="stat-total-sedes-nac">94</span>
+                    <span class="exec-kpi-label">Sedes CSC</span>
+                  </div>
+                  <div class="exec-kpi-pill kpi-pill--purple">
+                    <span class="exec-kpi-num text-purple" id="stat-espera-prom-nac">07:39</span>
+                    <span class="exec-kpi-label">Espera promedio</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Cuerpo: 2 Columnas (Mapa con leyenda flotante + Tabla de Ranking) -->
+              <div class="card-nacional-exec-body">
+                <!-- Columna 1: Panel del Mapa de Perú con Leyenda Flotante -->
+                <div class="exec-map-panel">
+                  <div class="peru-svg-container">
+                    <svg id="svg-peru-choropleth" class="peru-choropleth-svg" viewBox="0 0 240 340" preserveAspectRatio="xMidYMid meet">
+                      <!-- Departamentos y provincias inyectados con JavaScript -->
+                    </svg>
+                  </div>
+
+                  <!-- Leyenda Flotante en la esquina inferior izquierda -->
+                  <div class="exec-map-floating-legend">
+                    <div class="legend-row">
+                      <span class="legend-dot dot--muy-alta"></span>
+                      <span class="legend-text">Muy alta</span>
+                    </div>
+                    <div class="legend-row">
+                      <span class="legend-dot dot--alta"></span>
+                      <span class="legend-text">Alta</span>
+                    </div>
+                    <div class="legend-row">
+                      <span class="legend-dot dot--media"></span>
+                      <span class="legend-text">Media</span>
+                    </div>
+                    <div class="legend-row">
+                      <span class="legend-dot dot--baja"></span>
+                      <span class="legend-text">Baja</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Columna 2: Tabla de Ranking de Carga -->
+                <div class="exec-ranking-panel">
+                  <!-- Cabecera de la tabla de ranking -->
+                  <div class="ranking-table-header">
+                    <span class="r-col-rank">Ranking</span>
+                    <span class="r-col-iti">ITI</span>
+                    <span class="r-col-carga">Carga</span>
+                  </div>
+
+                  <!-- Filas inyectadas por JavaScript -->
+                  <div class="iti-ranking-table-list" id="iti-ranking-bars-container">
+                    <!-- Filas 1 a 8 + Otras inyectadas dinámicamente -->
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Elementos técnicos ocultos para compatibilidad de scripts anteriores -->
+            <div style="display: none;" aria-hidden="true">
+              <button type="button" id="btn-fullscreen-mapa"></button>
+              <button type="button" id="btn-ver-mapa-territorial"></button>
+            </div>
+          </div>
+
+          <!-- Columna Derecha: Lista de Intendencias Tributarias (ITI) -->
+          <div class="card-itis-container">
+            <header class="card-itis-header">
+              <h3 class="card-itis-title">Lista de Intendencias Tributarias (ITI)</h3>
+              <div class="card-itis-toolbar">
+                <div class="search-iti-box">
+                  <i class="fa-solid fa-magnifying-glass"></i>
+                  <input type="text" id="buscador-itis-input" placeholder="Buscar ITI...">
+                </div>
+                <div class="view-switch-modern">
+                  <button type="button" id="btn-view-tarjetas" class="btn-switch-tab active" title="Vista de tarjetas">
+                    <i class="fa-solid fa-table-cells-large"></i>
+                    <span>Tarjetas</span>
+                  </button>
+                  <button type="button" id="btn-view-tabla-iti" class="btn-switch-tab" title="Vista tabular">
+                    <i class="fa-solid fa-table-list"></i>
+                    <span>Tabla</span>
+                  </button>
+                </div>
+              </div>
+            </header>
+
+            <!-- SUB-VISTA A: Grid de Cards de ITI (3 columnas fieles al mockup) -->
+            <div id="grid-itis-cards" class="itis-cards-grid">
+              <!-- 21 Cards de ITI inyectadas dinámicamente con JavaScript -->
+            </div>
+
+            <!-- SUB-VISTA B: Tabla Ejecutiva de ITI -->
+            <div id="tabla-itis-wrap" class="itis-table-container" style="display: none;">
+              <table class="itis-table-modern">
+                <thead>
+                  <tr>
+                    <th>Intendencia Tributaria (ITI)</th>
+                    <th class="text-center">Estado</th>
+                    <th class="text-center">% Atención</th>
+                    <th class="text-center">En Atención</th>
+                    <th class="text-center">En Cola</th>
+                    <th class="text-center">Gestores</th>
+                    <th class="text-center">Tickets Hoy</th>
+                    <th class="text-center">T. Espera Prom.</th>
+                    <th class="text-center">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="tabla-itis-body">
+                  <tr><td colspan="9" class="empty-state">Cargando intendencias tributarias...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Elementos puente invisibles para compatibilidad técnica de scripts anteriores -->
+      <div style="display: none;" aria-hidden="true">
+        <span id="reg-ac-total">0</span>
+        <span id="reg-en-cola">0</span>
+        <span id="reg-en-atencion">0</span>
+        <span id="reg-agentes-activos">0</span>
+        <span id="reg-ta-prom">00:00</span>
+        <div id="contenedor-cards-gamificadas"></div>
+        <table id="tabla-comparativa-csc"><tbody id="tb-comparativa-csc"></tbody></table>
+      </div>
+
+      {% else %}
+      <!-- ====================================================================
+           VISTA POR INTENDENCIA (CSCs ADSCRITOS A LA ITI) - FIEL AL DISEÑO SAAS
+           ==================================================================== -->
+      <div class="nacional-dashboard-wrap">
+        <!-- Grid de 4 Hero Cards con Sparklines (Fiel al Dashboard) -->
+        <section class="nacional-kpis-4-grid">
+          <!-- 1. Tickets en Curso -->
+          <div class="kpi-card-modern">
+            <div class="kpi-card-icon icon--blue">
+              <i class="fa-solid fa-phone"></i>
+            </div>
+            <div class="kpi-card-body">
+              <span class="kpi-card-label">Tickets en curso</span>
+              <div class="kpi-card-val-row">
+                <span class="kpi-card-val" id="reg-ac-total">0</span>
+                <span class="kpi-card-badge badge--blue">+12%</span>
+              </div>
+              <span class="kpi-card-sub">en esta ITI</span>
+            </div>
+            <div class="kpi-card-spark">
+              <svg viewBox="0 0 60 20" preserveAspectRatio="none"><path d="M0,16 Q15,18 30,10 T60,4" fill="none" stroke="#0284c7" stroke-width="2" stroke-linecap="round"/></svg>
+            </div>
+          </div>
+
+          <!-- 2. En Cola -->
+          <div class="kpi-card-modern">
+            <div class="kpi-card-icon icon--red">
+              <i class="fa-regular fa-clock"></i>
+            </div>
+            <div class="kpi-card-body">
+              <span class="kpi-card-label">En cola</span>
+              <div class="kpi-card-val-row">
+                <span class="kpi-card-val" id="reg-en-cola">0</span>
+                <span class="kpi-card-badge badge--red">+18%</span>
+              </div>
+              <span class="kpi-card-sub">llamadas en espera</span>
+            </div>
+            <div class="kpi-card-spark">
+              <svg viewBox="0 0 60 20" preserveAspectRatio="none"><path d="M0,8 Q15,6 30,14 T60,8" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round"/></svg>
+            </div>
+          </div>
+
+          <!-- 3. En Atención -->
+          <div class="kpi-card-modern">
+            <div class="kpi-card-icon icon--green">
+              <i class="fa-solid fa-headset"></i>
+            </div>
+            <div class="kpi-card-body">
+              <span class="kpi-card-label">En atención</span>
+              <div class="kpi-card-val-row">
+                <span class="kpi-card-val" id="reg-en-atencion">0</span>
+                <span class="kpi-card-badge badge--green">+9%</span>
+              </div>
+              <span class="kpi-card-sub">gestores atendiendo</span>
+            </div>
+            <div class="kpi-card-spark">
+              <svg viewBox="0 0 60 20" preserveAspectRatio="none"><path d="M0,14 Q15,16 30,8 T60,4" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round"/></svg>
+            </div>
+          </div>
+
+          <!-- 4. Gestores Activos -->
+          <div class="kpi-card-modern">
+            <div class="kpi-card-icon icon--purple">
+              <i class="fa-solid fa-users"></i>
+            </div>
+            <div class="kpi-card-body">
+              <span class="kpi-card-label">Gestores activos</span>
+              <div class="kpi-card-val-row">
+                <span class="kpi-card-val" id="reg-agentes-activos">0</span>
+                <span class="kpi-card-badge badge--purple">+4%</span>
+              </div>
+              <span class="kpi-card-sub">en ventanilla</span>
+            </div>
+            <div class="kpi-card-spark">
+              <svg viewBox="0 0 60 20" preserveAspectRatio="none"><path d="M0,12 Q15,7 30,11 T60,6" fill="none" stroke="#a855f7" stroke-width="2" stroke-linecap="round"/></svg>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. Layout Principal en 2 Columnas -->
+        <div class="nacional-main-2col-layout">
+          <!-- Columna Izquierda: Mapa de la Región / ITI + Ranking de CSCs -->
+          <div class="nacional-left-col-sticky">
+            <div class="card-nacional-exec">
+              <!-- Cabecera Ejecutiva: Título de la ITI + 4 Mini KPIs Resumen -->
+              <div class="card-nacional-exec-header">
+                <div class="exec-header-text">
+                  <h2 class="exec-header-title">{{ intendencia_actual.nombre }}</h2>
+                  <p class="exec-header-sub">Ámbito territorial y Centros de Servicios (CSC)</p>
+                </div>
+
+                <!-- 4 Mini KPI Pills de la ITI en la cabecera -->
+                <div class="exec-header-kpis">
+                  <!-- 1. Sedes CSC -->
+                  <div class="exec-kpi-pill kpi-pill--blue" title="Total de Centros de Servicios al Contribuyente en esta ITI">
+                    <span class="exec-kpi-num text-blue" id="iti-stat-csccount">{{ sedes|length }}</span>
+                    <span class="exec-kpi-label">Sedes CSC</span>
+                  </div>
+
+                  <!-- 2. SLA (<15m) -->
+                  <div class="exec-kpi-pill kpi-pill--green" title="Cumplimiento de tiempo de atención menor a 15 min">
+                    <span class="exec-kpi-num text-green" id="iti-stat-sla">--%</span>
+                    <span class="exec-kpi-label">SLA (&lt;15m)</span>
+                  </div>
+
+                  <!-- 3. En espera -->
+                  <div class="exec-kpi-pill kpi-pill--amber" title="Contribuyentes en espera en ventanilla">
+                    <span class="exec-kpi-num text-amber" id="iti-stat-cola">--</span>
+                    <span class="exec-kpi-label">En espera</span>
+                  </div>
+
+                  <!-- 4. Espera promedio -->
+                  <div class="exec-kpi-pill kpi-pill--purple" title="Tiempo de espera promedio en esta ITI">
+                    <span class="exec-kpi-num text-purple" id="iti-stat-taprom">--:--</span>
+                    <span class="exec-kpi-label">Espera prom</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Cuerpo: 2 Columnas (Mapa Regional Ampliado + Tabla de Ranking de CSCs) -->
+              <div class="card-nacional-exec-body">
+                <!-- Columna 1: Panel del Mapa Regional Ampliado -->
+                <div class="exec-map-panel exec-map-panel-iti">
+                  <div class="peru-svg-container">
+                    <svg id="svg-iti-choropleth" class="peru-choropleth-svg" viewBox="0 0 240 280" preserveAspectRatio="xMidYMid meet">
+                      <!-- Provincias de esta ITI y pines de CSCs renderizados por JS -->
+                    </svg>
+                  </div>
+
+                  <!-- Botón flotante para regresar al mapa nacional -->
+                  <a href="/nacional" class="exec-btn-back-nacional" title="Volver a la vista nacional">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span>Ver Monitoreo Nacional</span>
+                  </a>
+
+                  <!-- Mini Leyenda Semáforo Oficial (Verde, Amarillo, Rojo + Sin sede) -->
+                  <div class="map-semaforo-legend-pills" title="Semáforo Operativo SUNAT">
+                    <span class="map-legend-pill">
+                      <span class="legend-color-dot" style="background: #10b981;"></span> Fluida
+                    </span>
+                    <span class="map-legend-pill">
+                      <span class="legend-color-dot" style="background: #f59e0b;"></span> Media
+                    </span>
+                    <span class="map-legend-pill">
+                      <span class="legend-color-dot" style="background: #ef4444;"></span> Alta
+                    </span>
+                    <span class="map-legend-pill">
+                      <span class="legend-color-dot" style="background: #94a3b8;"></span> Sin sede
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Columna 2: Tabla de Ranking de CSCs -->
+                <div class="exec-ranking-panel">
+                  <!-- Cabecera de la tabla de ranking -->
+                  <div class="ranking-table-header">
+                    <span class="r-col-rank">Ranking</span>
+                    <span class="r-col-iti">CSC</span>
+                    <span class="r-col-carga">Carga</span>
+                  </div>
+
+                  <!-- Filas inyectadas por JavaScript -->
+                  <div class="iti-ranking-table-list" id="csc-ranking-bars-container">
+                    <!-- Filas 1 a 6 + Otras inyectadas dinámicamente -->
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Columna Derecha: Centros de Servicios por Intendencia (3 CARDS POR FILA) -->
+          <div class="card-itis-container">
+            <div class="card-itis-header">
+              <h2 class="card-itis-title">Centros de Servicios por Intendencia</h2>
+              <div class="card-itis-toolbar">
+                <div class="search-iti-box">
+                  <i class="fa-solid fa-magnifying-glass"></i>
+                  <input type="text" id="buscador-csc-cards" placeholder="Buscar CSC...">
+                </div>
+                <div class="view-switch-modern">
+                  <button type="button" class="btn-switch-tab active" id="btn-toggle-csc-view-cards" title="Vista Tarjetas">
+                    <i class="fa-solid fa-grip"></i>
+                    <span>Tarjetas</span>
+                  </button>
+                  <button type="button" class="btn-switch-tab" id="btn-toggle-csc-view-table" title="Vista Tabla">
+                    <i class="fa-solid fa-table-list"></i>
+                    <span>Tabla</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Grid de Cards de CSC (3 columnas idénticas al mockup de SUNAT) -->
+            <div class="itis-cards-grid" id="grid-csc-cards">
+              <!-- Renderizado dinámicamente con JavaScript -->
+            </div>
+
+            <!-- Tabla de CSC (cuando se conmuta a modo lista) -->
+            <div id="tabla-csc-wrap" style="display: none; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+              <table class="tabla-itis-modern">
+                <thead>
+                  <tr>
+                    <th>Centro de Servicios (CSC)</th>
+                    <th class="text-center">Estado</th>
+                    <th class="text-center">% SLA</th>
+                    <th class="text-center">En Atención</th>
+                    <th class="text-center">En Cola</th>
+                    <th class="text-center">Gestores</th>
+                    <th class="text-center">Tickets</th>
+                    <th class="text-center">T. Espera Prom.</th>
+                    <th class="text-center">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="tabla-csc-body">
+                  <tr><td colspan="9" class="empty-state">Cargando centros de servicios...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Elementos puente invisibles para compatibilidad técnica de scripts anteriores -->
+      <div style="display: none;" aria-hidden="true">
+        <span id="reg-ta-prom">00:00</span>
+        <div id="contenedor-cards-gamificadas"></div>
+        <table id="tabla-comparativa-csc"><tbody id="tb-comparativa-csc"></tbody></table>
+      </div>
+      {% endif %}
+
+
+
+    </div>
+
+    <!-- ====================================================================
+         VISTA 2: MAPA TERRITORIAL & REPORTE EJECUTIVO NACIONAL
+         ==================================================================== -->
+    <div id="view-mapa-reporte" style="display: none;">
+      
+      <!-- SUB-NAV: CONMUTADOR MAPA vs REPORTE EJECUTIVO -->
+      <div class="view2-subnav-bar">
+        <div class="view2-tabs">
+          <button type="button" id="tab-v2-mapa" class="view2-tab active" title="Ver Mapa Territorial Interactivo y Telemetría">
+            <i class="fa-solid fa-earth-americas"></i>
+            <span>1. Mapa Territorial &amp; Telemetría</span>
+          </button>
+          <button type="button" id="tab-v2-reporte" class="view2-tab" title="Ver Reporte Analítico e Indicadores">
+            <i class="fa-solid fa-chart-line"></i>
+            <span>2. Reporte Ejecutivo &amp; Desempeño</span>
+          </button>
+        </div>
+        <div class="view2-subnav-hint">
+          <i class="fa-solid fa-lightbulb" style="color: #f59e0b;"></i>
+          <span>Tip: Clic en cualquier departamento o sede para desplegar la telemetría</span>
+        </div>
+      </div>
+
+      <!-- SECCIÓN A: MAPA PRINCIPAL INMERSIVO CON SLIDEBAR LATERAL COLAPSIBLE -->
+      <div id="seccion-mapa-territorial" class="mapa-immersive-container">
+        <div class="mapa-peru-card">
+          <div class="mapa-peru-header">
+            <div class="mapa-peru-title">
+              <i class="fa-solid fa-map-location-dot" style="color: #2563eb;"></i>
+              <span>Mapa Territorial Oficial SUNAT (21 ITIs &bull; 94 CSCs &bull; RS N.&deg; 000103-2023)</span>
+            </div>
+            <div class="mapa-peru-actions-bar">
+              <button type="button" class="map-nav-btn btn--return-tablero" id="btn-volver-dashboard-mapa" title="Volver al monitoreo nacional">
+                <i class="fa-solid fa-arrow-left"></i>
+                <span>Volver al Tablero</span>
+              </button>
+
+              <div class="map-pills-group">
+                <button type="button" class="map-nav-btn active" id="btn-focus-peru" title="Ver todo el territorio nacional">🇵🇪 Todo el Perú</button>
+              </div>
+
+              <div class="map-select-iti-wrap">
+                <select id="select-iti-mapa-quick" class="map-select-iti" title="Seleccionar Intendencia Tributaria">
+                  <option value="todas">-- Seleccionar ITI (21 ITIs) --</option>
+                  <option value="iti_lima">ITI Lima (14 CSCs)</option>
+                  <option value="iti_arequipa">ITI Arequipa (6 CSCs)</option>
+                  <option value="iti_lalibertad">ITI La Libertad (7 CSCs)</option>
+                  <option value="iti_ayacucho">ITI Ayacucho (4 CSCs)</option>
+                  <option value="iti_cajamarca">ITI Cajamarca (3 CSCs)</option>
+                  <option value="iti_chimbote">ITI Chimbote (2 CSCs)</option>
+                  <option value="iti_cusco">ITI Cusco (8 CSCs)</option>
+                  <option value="iti_huacho">ITI Huacho (3 CSCs)</option>
+                  <option value="iti_huanuco">ITI Huánuco (3 CSCs)</option>
+                  <option value="iti_huaraz">ITI Huaraz (3 CSCs)</option>
+                  <option value="iti_ica">ITI Ica (4 CSCs)</option>
+                  <option value="iti_juliaca">ITI Juliaca (3 CSCs)</option>
+                  <option value="iti_junin">ITI Junín (8 CSCs)</option>
+                  <option value="iti_lambayeque">ITI Lambayeque (4 CSCs)</option>
+                  <option value="iti_loreto">ITI Loreto (2 CSCs)</option>
+                  <option value="iti_madrededios">ITI Madre de Dios (1 CSC)</option>
+                  <option value="iti_piura">ITI Piura (6 CSCs)</option>
+                  <option value="iti_sanmartin">ITI San Martín (6 CSCs)</option>
+                  <option value="iti_tacna">ITI Tacna (3 CSCs)</option>
+                  <option value="iti_tumbes">ITI Tumbes (2 CSCs)</option>
+                  <option value="iti_ucayali">ITI Ucayali (2 CSCs)</option>
+                </select>
+              </div>
+
+              <!-- BOTÓN PARA ABRIR EL SLIDEBAR -->
+              <button type="button" id="btn-toggle-drawer" class="btn-drawer-toggle" title="Abrir o cerrar panel de telemetría y sedes">
+                <i class="fa-solid fa-chart-pie"></i>
+                <span>Telemetría &amp; Sedes</span>
+                <span class="badge-drawer-pill" id="drawer-toggle-badge">Nacional</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Contenedor del Mapa Leaflet al 100% -->
+          <div class="mapa-leaflet-wrapper">
+            <div id="mapa-peru-leaflet" style="width: 100%; height: 100%; border-radius: 14px; z-index: 1;"></div>
+            
+            <!-- Leyenda flotante sobre el mapa -->
+            <div class="map-floating-legend">
+              <div class="legend-item"><span class="legend-swatch" style="background:#0163ac;"></span> 21 ITIs SUNAT</div>
+              <div class="legend-item"><span class="legend-swatch" style="background:#ae0d41;"></span> ITI Seleccionada / Hover</div>
+              <div class="legend-item"><span class="legend-swatch" style="background:transparent; border:1px dashed #94a3b8;"></span> Límites Departamentales</div>
+              <div class="legend-item"><span class="legend-swatch" style="background:#ffd23f; border:1.5px solid #fff; border-radius:50%;"></span> 📍 94 Sedes CSC</div>
+            </div>
+
+            <!-- SLIDEBAR LATERAL (DRAWER) QUE SE DESLIZA DESDE LA DERECHA -->
+            <div id="slidebar-telemetria" class="slidebar-drawer" aria-hidden="true">
+              <div class="slidebar-header">
+                <div>
+                  <span class="slidebar-badge" id="side-telemetry-badge">ITI JUNÍN</span>
+                  <h3 class="slidebar-title" id="side-telemetry-name">Intendencia Junín</h3>
+                </div>
+                <button type="button" id="btn-close-slidebar" class="btn-close-slidebar" title="Ocultar panel lateral">
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+              </div>
+
+              <div class="slidebar-content">
+                <!-- 4 KPIs Minimalistas -->
+                <div class="slidebar-kpis">
+                  <div class="slide-kpi">
+                    <span class="slide-kpi-val text-success" id="side-kpi-sla">--%</span>
+                    <span class="slide-kpi-lbl">SLA (&lt;15m)</span>
+                  </div>
+                  <div class="slide-kpi">
+                    <span class="slide-kpi-val text-primary" id="side-kpi-atendidos">--</span>
+                    <span class="slide-kpi-lbl">Atendidos</span>
+                  </div>
+                  <div class="slide-kpi">
+                    <span class="slide-kpi-val text-warning" id="side-kpi-espera">--</span>
+                    <span class="slide-kpi-lbl">En Espera</span>
+                  </div>
+                  <div class="slide-kpi">
+                    <span class="slide-kpi-val" id="side-kpi-tiempo">--:--</span>
+                    <span class="slide-kpi-lbl">Espera Prom.</span>
+                  </div>
+                </div>
+
+                <!-- Lista de Sedes y CSCs -->
+                <div class="slidebar-section">
+                  <div class="slidebar-section-title">
+                    <span>Centros de Servicios (CSC)</span>
+                    <span class="badge-counter" id="side-sedes-count">0</span>
+                  </div>
+                  <div class="slidebar-sedes-list" id="side-sedes-items">
+                    <!-- Sedes generadas dinámicamente -->
+                  </div>
+                </div>
+
+                <!-- Botón hacia el Reporte Ejecutivo -->
+                <button type="button" id="btn-slidebar-ir-reporte" class="btn-slidebar-reporte">
+                  <i class="fa-solid fa-chart-line"></i>
+                  <span>Ver Reporte Ejecutivo &rarr;</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Backdrop para cerrar al hacer clic afuera -->
+            <div id="slidebar-backdrop" class="slidebar-backdrop"></div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- SECCIÓN B: REPORTE EJECUTIVO A PANTALLA COMPLETA -->
+      <div id="seccion-reporte-pro" class="reporte-pro-row" style="display: none;">
+        <div class="reporte-pro-card">
+            <!-- Header del Reporte Ejecutivo -->
+            <div class="reporte-pro-header">
+              <div class="reporte-pro-title-wrap">
+                <div class="reporte-pro-title">
+                  <i class="fa-solid fa-chart-line" style="color: #0163ac;"></i>
+                  <span>Reporte Analítico Ejecutivo Multirregional</span>
+                </div>
+                <span class="reporte-pro-sub" id="pro-reporte-sub-label">Consolidado en vivo de eficiencia, tiempos y capacidad operativa</span>
+              </div>
+
+              <div class="reporte-pro-actions">
+                <button type="button" id="btn-reporte-volver-mapa" class="btn btn--subtle btn--sm" title="Volver a la vista del mapa">
+                  <i class="fa-solid fa-earth-americas"></i>
+                  <span>Ver Mapa</span>
+                </button>
+
+                <select id="pro-select-intendencia" class="form-control form-control--sm" style="font-weight: 600;">
+                  <option value="todas">Todas las Intendencias</option>
+                  <option value="iti_junin">ITI Junín (Real)</option>
+                  <option value="iti_ica">ITI Ica (Simulado)</option>
+                  <option value="iti_arequipa">ITI Arequipa (Simulado)</option>
+                </select>
+
+                <button type="button" id="btn-imprimir-reporte-pro" class="btn-report-export btn-report-export--print" title="Generar impresión ejecutiva o PDF institucional">
+                  <i class="fa-solid fa-print"></i>
+                  <span>Imprimir PDF PRO</span>
+                </button>
+
+                <button type="button" id="btn-exportar-csv-pro" class="btn-report-export" title="Exportar tabla completa a Excel/CSV">
+                  <i class="fa-solid fa-file-excel" style="color: #107c41;"></i>
+                  <span>CSV</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- 4 Big Stat Cards PRO -->
+            <div class="reporte-stat-strip">
+              <!-- SLA Cumplimiento -->
+              <div class="stat-pro-card">
+                <span class="stat-pro-label">CUMPLIMIENTO SLA</span>
+                <div class="stat-pro-val-row">
+                  <span class="stat-pro-val text-primary" id="pro-sla-val">95.4%</span>
+                  <span class="badge-tag" style="background: #dcfce7; color: #15803d; font-size: 10px;">Meta &gt;90%</span>
+                </div>
+                <span class="stat-pro-sub">Espera menor a 15 min</span>
+              </div>
+
+              <!-- Tiempo Espera Promedio -->
+              <div class="stat-pro-card">
+                <span class="stat-pro-label">T. ESPERA PROMEDIO</span>
+                <div class="stat-pro-val-row">
+                  <span class="stat-pro-val" id="pro-espera-val">05:42</span>
+                  <span class="stat-pro-sub">min:seg</span>
+                </div>
+                <span class="stat-pro-sub">Meta institucional: &lt; 15m</span>
+              </div>
+
+              <!-- Total Atendidos Hoy -->
+              <div class="stat-pro-card">
+                <span class="stat-pro-label">CONTRIBUYENTES ATENDIDOS</span>
+                <div class="stat-pro-val-row">
+                  <span class="stat-pro-val" id="pro-atendidos-val">682</span>
+                  <span class="stat-pro-sub">tickets</span>
+                </div>
+                <span class="stat-pro-sub">Total acumulado hoy</span>
+              </div>
+
+              <!-- T. Atención Promedio -->
+              <div class="stat-pro-card">
+                <span class="stat-pro-label">T. ATENCIÓN PROMEDIO</span>
+                <div class="stat-pro-val-row">
+                  <span class="stat-pro-val" id="pro-ta-val">07:15</span>
+                  <span class="stat-pro-sub">min:seg</span>
+                </div>
+                <span class="stat-pro-sub">Tiempo en ventanilla</span>
+              </div>
+            </div>
+
+            <!-- PODIO GAMIFICADO (RANKING DE EFICIENCIA OPERATIVA) -->
+            <div class="podio-ranking-card">
+              <div class="podio-title-row">
+                <h4><i class="fa-solid fa-trophy" style="color: #eab308;"></i> Podio de Rendimiento y Calidad de Atención</h4>
+                <span style="font-size: 11px; color: #64748b;">Actualizado cada 10 seg</span>
+              </div>
+              <div class="podio-grid" id="podio-ranking-container">
+                <!-- Podio 1 (Oro) -->
+                <div class="podio-step podio-step--1">
+                  <span class="podio-medal">🥇</span>
+                  <span class="podio-sede-name" id="podio-1-name">CSC Huancayo</span>
+                  <span class="podio-sede-int" id="podio-1-int">ITI Junín</span>
+                  <span class="podio-score" id="podio-1-score">98.2% SLA &bull; 04:12</span>
+                </div>
+                <!-- Podio 2 (Plata) -->
+                <div class="podio-step podio-step--2">
+                  <span class="podio-medal">🥈</span>
+                  <span class="podio-sede-name" id="podio-2-name">CSC Ica Centro</span>
+                  <span class="podio-sede-int" id="podio-2-int">ITI Ica</span>
+                  <span class="podio-score" id="podio-2-score">96.5% SLA &bull; 05:20</span>
+                </div>
+                <!-- Podio 3 (Bronce) -->
+                <div class="podio-step podio-step--3">
+                  <span class="podio-medal">🥉</span>
+                  <span class="podio-sede-name" id="podio-3-name">CSC Arequipa Mercaderes</span>
+                  <span class="podio-sede-int" id="podio-3-int">ITI Arequipa</span>
+                  <span class="podio-score" id="podio-3-score">94.8% SLA &bull; 06:10</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- GRÁFICOS ANALÍTICOS PRO -->
+            <div class="reporte-pro-charts-grid">
+              <!-- Gráfico 1: Cumplimiento SLA por Sede con Línea al 90% -->
+              <div class="pro-chart-box">
+                <div class="pro-chart-title">
+                  <span>Cumplimiento SLA por Sede (% &le; 15 min)</span>
+                  <span class="badge-tag" style="background: #fee2e2; color: #dc2626;">Meta 90%</span>
+                </div>
+                <div id="chart-pro-sla-container" style="height: 220px;">
+                  <svg id="svg-pro-sla" width="100%" height="220" preserveAspectRatio="none"></svg>
+                </div>
+              </div>
+
+              <!-- Gráfico 2: Distribución por Tipo de Trámite -->
+              <div class="pro-chart-box">
+                <div class="pro-chart-title">
+                  <span>Distribución de Trámites por Categoría</span>
+                  <span style="font-size: 11px; color: #64748b;">4 Áreas</span>
+                </div>
+                <div id="chart-pro-tramites-container" style="height: 220px;">
+                  <svg id="svg-pro-tramites" width="100%" height="220" preserveAspectRatio="none"></svg>
+                </div>
+              </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+</div>
+</div>
+
+<!-- ====================================================================
+     MODAL DE GESTIÓN DE CONEXIONES E INTENDENCIAS (CRUD COMPLETO)
+     ==================================================================== -->
+<div id="modal-crud-conexiones-backdrop" class="modal-backdrop" hidden>
+  <div class="modal-dialog modal-dialog--crud-conn">
+    <header class="modal-header">
+      <div class="modal-header__title-wrap">
+        <h3 class="modal-title">Gestión de Conexiones &amp; Intendencias</h3>
+        <span class="modal-subtitle">Conexión directa a SQL Server (ITI Junín) y configuración de sedes simuladas (Ica, Arequipa)</span>
+      </div>
+      <button type="button" id="btn-cerrar-modal-crud-conn" class="modal-close" aria-label="Cerrar">&times;</button>
+    </header>
+
+    <div class="modal-body">
+      <!-- Pestañas del Modal CRUD -->
+      <div class="crud-tabs-nav">
+        <button type="button" class="crud-tab-btn active" data-crud-tab="tab-sedes-lista">
+          <i class="fa-solid fa-server"></i> Sedes y Conexiones (<span id="crud-count-sedes-tab">15</span>)
+        </button>
+        <button type="button" class="crud-tab-btn" data-crud-tab="tab-nueva-sede">
+          <i class="fa-solid fa-plus-circle"></i> + Nueva Sede / Enlace
+        </button>
+        <button type="button" class="crud-tab-btn" data-crud-tab="tab-intendencias-lista">
+          <i class="fa-solid fa-building-columns"></i> Intendencias Regionales
+        </button>
+      </div>
+
+      <!-- PESTAÑA 1: LISTADO DE SEDES Y PARÁMETROS SQL -->
+      <div id="tab-sedes-lista" class="crud-tab-panel">
+        <div class="crud-table-wrap">
+          <table class="reporte-table" id="tabla-crud-sedes">
+            <thead>
+              <tr>
+                <th>Sede</th>
+                <th>Intendencia</th>
+                <th>Host IP / Instancia</th>
+                <th>Puerto / BD</th>
+                <th class="text-center">Modo</th>
+                <th class="text-center">Test Ping</th>
+                <th class="text-right">Acción</th>
+              </tr>
+            </thead>
+            <tbody id="tb-crud-sedes-body">
+              <tr><td colspan="7" class="empty-state">Cargando sedes y conexiones...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- PESTAÑA 2: FORMULARIO DE NUEVA SEDE / ENLACE -->
+      <div id="tab-nueva-sede" class="crud-tab-panel" style="display: none;">
+        <form id="form-crear-sede" class="user-form-grid" style="grid-template-columns: repeat(2, 1fr);">
+          <div class="form-group">
+            <label for="sede-new-codigo" class="form-label">Código Único <span class="req">*</span></label>
+            <input type="text" id="sede-new-codigo" class="form-control" placeholder="ej: ica_parcona" required>
+          </div>
+
+          <div class="form-group">
+            <label for="sede-new-nombre" class="form-label">Nombre del CSC <span class="req">*</span></label>
+            <input type="text" id="sede-new-nombre" class="form-control" placeholder="ej: CSC PARCONA" required>
+          </div>
+
+          <div class="form-group">
+            <label for="sede-new-intendencia" class="form-label">Intendencia Perteneciente <span class="req">*</span></label>
+            <select id="sede-new-intendencia" class="form-control" required>
+              <option value="iti_junin">ITI Junín (Real)</option>
+              <option value="iti_ica">ITI Ica (Simulada)</option>
+              <option value="iti_arequipa">ITI Arequipa (Simulada)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="sede-new-host" class="form-label">Dirección IP o Host SQL Server <span class="req">*</span></label>
+            <input type="text" id="sede-new-host" class="form-control" placeholder="10.51.2.21" value="127.0.0.1" required>
+          </div>
+
+          <div class="form-group">
+            <label for="sede-new-puerto" class="form-label">Puerto TCP</label>
+            <input type="number" id="sede-new-puerto" class="form-control" value="1433">
+          </div>
+
+          <div class="form-group">
+            <label for="sede-new-instancia" class="form-label">Instancia SQL Server</label>
+            <input type="text" id="sede-new-instancia" class="form-control" value="SQLEXPRESS">
+          </div>
+
+          <div class="form-group">
+            <label for="sede-new-bd" class="form-label">Base de Datos de Colas</label>
+            <input type="text" id="sede-new-bd" class="form-control" value="bdtvmediasunat">
+          </div>
+
+          <div class="form-group">
+            <label for="sede-new-modo" class="form-label">Modo Inicial</label>
+            <select id="sede-new-modo" class="form-control">
+              <option value="0">Conexión Real SQL Server</option>
+              <option value="1">Modo Simulado (Generador Telemetría)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="sede-new-usuario" class="form-label">Usuario SQL</label>
+            <input type="text" id="sede-new-usuario" class="form-control" value="sacolas">
+          </div>
+
+          <div class="form-group">
+            <label for="sede-new-clave" class="form-label">Contraseña SQL</label>
+            <input type="password" id="sede-new-clave" class="form-control" value="sacolas">
+          </div>
+
+          <div class="user-form-grid__actions" style="grid-column: 1 / -1;">
+            <button type="submit" id="btn-guardar-sede-new" class="btn btn--primary">
+              <i class="fa-solid fa-floppy-disk"></i>
+              <span>Guardar y Conectar Sede</span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- PESTAÑA 3: LISTADO DE INTENDENCIAS -->
+      <div id="tab-intendencias-lista" class="crud-tab-panel" style="display: none;">
+        <div class="crud-table-wrap">
+          <table class="reporte-table" id="tabla-crud-intendencias">
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Nombre Institucional</th>
+                <th>Siglas</th>
+                <th>Región Mapa</th>
+                <th>Tipo Conexión</th>
+                <th class="text-center">Sedes</th>
+              </tr>
+            </thead>
+            <tbody id="tb-crud-intendencias-body">
+              <tr><td colspan="6" class="empty-state">Cargando intendencias...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====================================================================
+     MODAL DE ACCESO / INICIO DE SESIÓN
+     ==================================================================== -->
+<div id="modal-auth-backdrop" class="modal-backdrop" hidden>
+  <div class="modal-dialog modal-dialog--auth">
+    <div class="login-floating-icon">
+      <i class="fa-solid fa-user"></i>
+    </div>
+
+    <button type="button" id="btn-cerrar-modal-auth" class="modal-close-sicode" aria-label="Cerrar">&times;</button>
+
+    <div class="login-modal-brand">
+      <img src="/static/iconSunat.svg" alt="SUNAT" style="height: 32px; margin-bottom: 4px;">
+      <h3>SITRA JUNÍN</h3>
+      <span>Monitoreo de Tiempos &bull; IR Junín</span>
+    </div>
+
+    <div id="auth-login-error" class="error-message u-hidden">
+      <i class="fa-solid fa-circle-exclamation"></i>
+      <span id="auth-error-msg-text"></span>
+    </div>
+
+    <form id="form-auth-login">
+      <label class="login-label" for="auth-correo">Usuario / Correo</label>
+      <div class="login-input-group">
+        <i class="fa-solid fa-user login-input-icon"></i>
+        <input type="email" id="auth-correo" class="login-input" placeholder="ejemplo@sunat.gob.pe" required autocomplete="username">
+      </div>
+
+      <label class="login-label" for="auth-password">Contraseña</label>
+      <div class="login-input-group">
+        <i class="fa-solid fa-lock login-input-icon"></i>
+        <input type="password" id="auth-password" class="login-input" placeholder="Ingrese su contraseña" required autocomplete="current-password">
+      </div>
+
+      <div class="login-options">
+        <label class="login-checkbox">
+          <input type="checkbox" checked> Recordarme
+        </label>
+        <span style="font-size: 11.5px; color: var(--text-muted);">Directivos / Admin</span>
+      </div>
+
+      <button type="submit" id="btn-submit-login" class="login-btn">
+        <span>Ingresar</span>
+      </button>
+
+      <button type="button" id="btn-confirm-guest" class="login-btn-guest">
+        <span>Entrar como Invitado</span>
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- ====================================================================
+     MODAL DE GESTIÓN DE DIRECTIVOS (SOLO ADMINISTRADOR)
+     ==================================================================== -->
+<div id="modal-usuarios-backdrop" class="modal-backdrop" hidden>
+  <div class="modal-dialog modal-dialog--usuarios">
+    <header class="modal-header">
+      <div class="modal-header__title-wrap">
+        <h3 class="modal-title">Gestión de Usuarios Directivos</h3>
+        <span class="modal-subtitle">Asignación de cuentas con acceso al reporte detallado de SITRA</span>
+      </div>
+      <button type="button" id="btn-cerrar-modal-usuarios" class="modal-close" aria-label="Cerrar">&times;</button>
+    </header>
+
+    <div class="modal-body modal-body--usuarios">
+      <div class="user-mgmt-form-card">
+        <h4 class="user-mgmt-subtitle">+ Registrar Nuevo Directivo</h4>
+        <form id="form-crear-usuario" class="user-form-grid">
+          <div class="form-group">
+            <label for="new-user-nombre" class="form-label">Nombre Completo <span class="req">*</span></label>
+            <input type="text" id="new-user-nombre" class="form-control" placeholder="Ej: Dr. Carlos Ramos" required>
+          </div>
+
+          <div class="form-group">
+            <label for="new-user-correo" class="form-label">Correo Electrónico <span class="req">*</span></label>
+            <input type="email" id="new-user-correo" class="form-control" placeholder="cramos@sunat.gob.pe" required>
+          </div>
+
+          <div class="form-group">
+            <label for="new-user-password" class="form-label">Contraseña <span class="req">*</span></label>
+            <input type="password" id="new-user-password" class="form-control" placeholder="Mínimo 6 caracteres" required>
+          </div>
+
+          <div class="form-group">
+            <label for="new-user-rol" class="form-label">Rol Asignado</label>
+            <select id="new-user-rol" class="form-control">
+              <option value="directivo" selected>Directivo (Ver Reportes)</option>
+              <option value="admin">Administrador (Total)</option>
+            </select>
+          </div>
+
+          <div class="user-form-grid__actions">
+            <button type="submit" id="btn-guardar-nuevo-usuario" class="btn btn--primary">
+              <span>Guardar Usuario</span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="user-mgmt-table-card">
+        <h4 class="user-mgmt-subtitle">Usuarios y Directivos Registrados</h4>
+        <div class="table-wrap-clean">
+          <table class="reporte-table">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Correo Electrónico</th>
+                <th>Rol</th>
+                <th class="text-center">Estado</th>
+                <th>Creado</th>
+                <th class="text-right">Acción</th>
+              </tr>
+            </thead>
+            <tbody id="tb-lista-usuarios">
+              <tr><td colspan="6" class="empty-state">Cargando usuarios...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST DE NOTIFICACIONES -->
+<div id="comp-toast" class="toast" aria-live="polite"></div>
+
+<!-- TOOLTIP FLOTANTE -->
+<div id="comp-tooltip" class="chart-tooltip" role="tooltip" aria-hidden="true"></div>
+
+<!-- Scripts Cartográficos y Datos Oficiales SUNAT -->
+<script src="/static/vendor/leaflet/leaflet.js"></script>
+<script src="/static/vendor/turf.min.js"></script>
+<script src="/static/data/departamentos.js"></script>
+<script src="/static/data/provincias.js"></script>
+<script src="/static/data/sunat.js"></script>
+<script src="/static/tablero.js?v={{ version }}"></script>
+<script>
+  function toggleSitraCompAccountPopover(e) {
+    if (e) e.stopPropagation();
+    const pop = document.getElementById('sitra-comp-account-popover');
+    if (pop) pop.classList.toggle('open');
+  }
+  document.addEventListener('click', function(e) {
+    const pop = document.getElementById('sitra-comp-account-popover');
+    const btn = document.getElementById('btn-comp-account-toggle');
+    if (pop && pop.classList.contains('open') && !pop.contains(e.target) && (!btn || !btn.contains(e.target))) {
+      pop.classList.remove('open');
+    }
+  });
+</script>
+</body>
+</html>

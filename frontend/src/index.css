@@ -1,0 +1,233 @@
+@import './tablero.css';
+
+/* ====================================================================
+   SITRA React - Reglas adicionales y mejoras de interfaz moderna
+   ==================================================================== */
+
+#root {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  overflow: hidden;
+}
+
+/* Modales React */
+.react-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: fadeIn 0.15s ease-out;
+}
+
+.react-modal-container {
+  background: var(--bg-surface, #ffffff);
+  border-radius: 14px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 800px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--border-subtle, #e5e7eb);
+  animation: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.react-modal-container--large {
+  max-width: 1100px;
+}
+
+.react-modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-subtle, #e5e7eb);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-subtle, #f8fafc);
+}
+
+.react-modal-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-main, #1e2939);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.react-modal-close {
+  background: transparent;
+  border: none;
+  font-size: 1.25rem;
+  color: var(--text-muted, #6a7282);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.react-modal-close:hover {
+  background: var(--bg-hover, #f1f5f9);
+  color: var(--text-main, #1e2939);
+}
+
+.react-modal-body {
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.react-modal-footer {
+  padding: 14px 20px;
+  border-top: 1px solid var(--border-subtle, #e5e7eb);
+  background: var(--bg-subtle, #f8fafc);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.97) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Botones estándar */
+.btn-primary {
+  background-color: var(--primary, #0163ac);
+  color: #ffffff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.15s;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-dark, #014f88);
+}
+
+.btn-secondary {
+  background-color: var(--bg-subtle, #f8fafc);
+  color: var(--text-body, #4a5565);
+  border: 1px solid var(--border-medium, #cbd5e1);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.15s;
+}
+
+.btn-secondary:hover {
+  background-color: var(--bg-hover, #f1f5f9);
+  color: var(--text-main, #1e2939);
+}
+
+.btn-danger {
+  background-color: #ef4444;
+  color: #ffffff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.15s;
+}
+
+.btn-danger:hover {
+  background-color: #dc2626;
+}
+
+/* Categorías de tickets */
+.badge-cat-mesa {
+  background-color: #f3e8ff;
+  color: #7e22ce;
+  border: 1px solid #d8b4fe;
+}
+
+.badge-cat-tramite {
+  background-color: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+}
+
+.badge-cat-cabina {
+  background-color: #d1fae5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+.badge-cat-orientacion {
+  background-color: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+.badge-cat-default {
+  background-color: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}
+
+/* Semáforos */
+.dot-verde { background-color: #10b981; }
+.dot-ambar { background-color: #f59e0b; }
+.dot-rojo { background-color: #ef4444; }
+
+.text-verde { color: #10b981; }
+.text-ambar { color: #f59e0b; }
+.text-rojo { color: #ef4444; }
+
+.badge-verde { background-color: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
+.badge-ambar { background-color: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+.badge-rojo { background-color: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+
+/* Contenedor principal de la aplicación React */
+.app-container {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.main-viewport {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: var(--bg-page, #f3f4f6);
+}
+
+.page-content-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 28px;
+}

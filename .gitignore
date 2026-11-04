@@ -1,0 +1,41 @@
+# Entorno y credenciales
+.env
+.env.local
+.env.*.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+build/
+dist/
+*.spec.bak
+
+# Bases de datos locales SQLite de desarrollo
+*.db
+*.sqlite3
+
+# Node & Frontend dependencies
+node_modules/
+.npm
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editores y asistentes IA
+.claude/
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Temporales de prueba
+scratch/

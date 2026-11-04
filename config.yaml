@@ -1,0 +1,50 @@
+# Configuración de sedes monitoreadas
+sedes:
+  - codigo: huancayo
+    nombre: CSC HUANCAYO
+    host: 10.51.2.21
+  - codigo: chanchamayo
+    nombre: CSC CHANCHAMAYO
+    host: 10.133.2.21
+  - codigo: huancavelica
+    nombre: CSC HUANCAVELICA
+    host: 10.70.2.21
+  - codigo: oxapampa
+    nombre: CSC OXAPAMPA
+    host: 10.183.2.21
+  - codigo: satipo
+    nombre: CSC SATIPO
+    host: 10.182.2.21
+  - codigo: tarma
+    nombre: CSC TARMA
+    host: 10.82.2.21
+  - codigo: laoroya
+    nombre: CSC LA OROYA
+    host: 10.156.2.21
+
+# Umbrales del semáforo en minutos (verde, ámbar y rojo)
+semaforo:
+  espera:
+    ambar: 12
+    rojo: 15
+  atencion:
+    ambar: 5
+    rojo: 8
+  suspension:
+    ambar: 5
+    rojo: 8
+
+# Intervalo de actualización en segundos
+intervalo_refresco: 10
+
+# Tiempo de espera máximo por consulta en segundos
+timeout_consulta: 8
+
+# Ruta de la base de datos de la Guía de Trámites y Preguntas Frecuentes
+ruta_guia_db: "D:/SITRA/guia.db"
+
+# Ruta de la base de datos local de usuarios y autenticación
+ruta_auth_db: "D:/SITRA/usuarios.db"
+
+
+

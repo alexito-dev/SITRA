@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SITRA - Monitoreo de Tiempos</title>
+  <!-- Fuentes Google y FontAwesome (Inter Moderna Fintech / SaaS) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/static/tablero.css?v={{ version }}">
+</head>
+<body data-sede="{{ sede_actual }}" data-intervalo="{{ intervalo }}">
+
+<div class="layout-with-sidebar">
+  {% include "sidebar.html" %}
+
+  <div class="main-content-layout">
+    <!-- CABECERA MINIMALISTA UNIFICADA (Centro / CSC / Módulo) -->
+    <header class="topbar-minimal">
+      <!-- SELECTOR DESPLEGABLE DE CSC DE LA INTENDENCIA -->
+      <div class="csc-selector-wrapper" id="csc-selector-container">
+        <button type="button" class="csc-selector-btn" id="csc-dropdown-btn" aria-haspopup="true" aria-expanded="false" onclick="toggleCscDropdown(event)" title="Cambiar Centro de Servicios (CSC)">
+          <span class="csc-selector-btn__text" id="nombre-sede">{{ sede_nombre }}</span>
+          <svg class="csc-selector-btn__chevron" id="csc-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+
+        <!-- POPOVER FLOTANTE -->
+        <div class="csc-popover" id="csc-dropdown-popover" style="display: none;" onclick="event.stopPropagation()">
+          <div class="csc-search-box">
+            <i class="fa-solid fa-magnifying-glass csc-search-icon"></i>
+            <input type="text" id="csc-search-input" class="csc-search-input" placeholder="Buscar CSC..." autocomplete="off" oninput="filtrarCscs(this.value)">
+          </div>
+
+          <div class="csc-popover-list" id="csc-list-items">
+            {% for s in (sedes_hermanas if sedes_hermanas else sedes)|sort(attribute='nombre') %}
+            {% set es_activo = (s.codigo == sede_actual or s.codigo == sede_actual.replace('csc_', '') or ('csc_' ~ s.codigo) == sede_actual) %}
+            {% set esta_en_linea = True if es_activo else s.conectado %}
+            <a href="/sede/{{ s.codigo }}" class="csc-popover-item {% if es_activo %}csc-popover-item--active{% endif %}" data-csc-code="{{ s.codigo }}" data-csc-name="{{ s.nombre }}">
+              <div class="csc-item-left">
+                <span class="csc-status-dot {% if esta_en_linea %}csc-status-dot--live{% else %}csc-status-dot--offline{% endif %}" data-csc-dot="{{ s.codigo }}"></span>
+                <span class="csc-item-name">{{ s.nombre }}</span>
+              </div>
+              <div class="csc-item-right">
+                <span class="csc-status-badge {% if esta_en_linea %}csc-status-badge--live{% else %}csc-status-badge--offline{% endif %}" data-csc-badge="{{ s.codigo }}">
+                  {% if esta_en_linea %}En vivo{% else %}Sin conexión{% endif %}
+                </span>
+                {% if es_activo %}
+                <svg class="csc-check-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                {% endif %}
+              </div>
+            </a>
+            {% endfor %}
+          </div>
+
+          <div id="csc-empty-state" class="csc-empty-state" style="display: none;">
+            No se encontraron sedes
+          </div>
+
+          <div class="csc-popover-footer">
+            <span id="csc-count-label" class="csc-count-label">{{ (sedes_hermanas if sedes_hermanas else sedes)|length }} CSC disponibles</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="topbar-minimal__meta">
+        <span class="meta-clock" title="Hora Oficial del Sistema">
+          <i class="fa-regular fa-clock"></i>
+          <span class="sitra-live-clock" id="reloj">--:--:--</span>
+        </span>
+        <span class="meta-divider"></span>
+        <div class="meta-status-pill" id="centro-status-pill">
+          <span class="meta-dot" id="centro-status-dot"></span>
+          <span id="centro-status-text">En línea</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Elementos técnicos ocultos para compatibilidad de scripts -->
+    <div style="display: none;" aria-hidden="true">
+      <span id="sello"></span>
+    </div>
+
+  <!-- CONTENIDO EN 2 COLUMNAS -->
+  <div class="workspace">
+    <!-- COLUMNA 1: SIDEBAR DE SEDES Y ESTADO OPERATIVO -->
+    <aside class="sidebar" aria-label="Centros de servicios">
+      <!-- ESTADO OPERATIVO (ACTIVE CALLS Y KPIS) EN LA BARRA LATERAL -->
+      <!-- ESTADO OPERATIVO (ACTIVE CALLS Y KPIS) EN LA BARRA LATERAL -->
+      <div class="sidebar__label sidebar__label--live">
+        <span class="sidebar__label-text"><i class="fa-solid fa-chart-pie" style="color: #3b82f6;"></i> Estado Operativo</span>
+        <span class="kpi-live-chip"><span class="kpi-pulse-dot"></span>En Vivo</span>
+      </div>
+      <div class="sidebar-kpis" id="sidebar-kpis">
+        <!-- Hero Card: Active Calls con badge circular cálido y elevación ejecutiva -->
+        <div class="kpi-hero-vibrant">
+          <div class="kpi-hero-vibrant__badge">
+            <i class="fa-solid fa-phone"></i>
+          </div>
+          <div class="kpi-hero-vibrant__info">
+            <span class="kpi-hero-vibrant__label">Active Calls</span>
+            <div class="kpi-hero-vibrant__val-row">
+              <span class="kpi-hero-vibrant__value" id="ac-total">0</span>
+              <span class="kpi-hero-vibrant__sub">en curso</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 6 Mini KPIs cálidos y dinámicos con micro-insignias semánticas -->
+        <div class="kpi-vibrant-grid">
+          <div class="kpi-vibrant-box kpi-vibrant-box--cola" title="Llamadas o tickets en espera de ser atendidos">
+            <div class="kpi-vibrant-box__top">
+              <span class="kpi-vibrant-badge kpi-vibrant-badge--cola"><i class="fa-regular fa-clock"></i></span>
+              <span class="kpi-vibrant-label">En Cola</span>
+            </div>
+            <span class="kpi-vibrant-value kpi-vibrant-value--cola" id="en-cola">0</span>
+          </div>
+
+          <div class="kpi-vibrant-box kpi-vibrant-box--atencion" title="Tickets actualmente atendidos en ventanilla">
+            <div class="kpi-vibrant-box__top">
+              <span class="kpi-vibrant-badge kpi-vibrant-badge--atencion"><i class="fa-solid fa-headset"></i></span>
+              <span class="kpi-vibrant-label">En Atención</span>
+            </div>
+            <span class="kpi-vibrant-value kpi-vibrant-value--atencion" id="en-atencion">0</span>
+          </div>
+
+          <div class="kpi-vibrant-box kpi-vibrant-box--susp" title="Tickets temporalmente suspendidos">
+            <div class="kpi-vibrant-box__top">
+              <span class="kpi-vibrant-badge kpi-vibrant-badge--susp"><i class="fa-solid fa-pause"></i></span>
+              <span class="kpi-vibrant-label">Suspendidos</span>
+            </div>
+            <span class="kpi-vibrant-value kpi-vibrant-value--susp" id="suspendidos">0</span>
+          </div>
+
+          <div class="kpi-vibrant-box kpi-vibrant-box--espera" title="Tiempo de espera máximo del ticket actual en cola">
+            <div class="kpi-vibrant-box__top">
+              <span class="kpi-vibrant-badge kpi-vibrant-badge--espera"><i class="fa-solid fa-hourglass-half"></i></span>
+              <span class="kpi-vibrant-label">Espera Máx</span>
+            </div>
+            <span class="kpi-vibrant-value kpi-vibrant-value--espera" id="espera-max">00:00</span>
+          </div>
+
+          <div class="kpi-vibrant-box kpi-vibrant-box--bsc" title="Porcentaje de tickets con espera <= 15 minutos (Meta institucional: >= 90%).">
+            <div class="kpi-vibrant-box__top">
+              <span class="kpi-vibrant-badge kpi-vibrant-badge--bsc"><i class="fa-solid fa-shield-halved"></i></span>
+              <span class="kpi-vibrant-label">% &lt; 15 min</span>
+            </div>
+            <span class="kpi-vibrant-value kpi-vibrant-value--bsc" id="espera-pct">100%</span>
+          </div>
+
+          <div class="kpi-vibrant-box kpi-vibrant-box--ta" title="Tiempo de atención promedio global del día (Meta BSC <= 8 min)">
+            <div class="kpi-vibrant-box__top">
+              <span class="kpi-vibrant-badge kpi-vibrant-badge--ta"><i class="fa-solid fa-stopwatch"></i></span>
+              <span class="kpi-vibrant-label">TA Prom.</span>
+            </div>
+            <span class="kpi-vibrant-value kpi-vibrant-value--ta" id="ta-prom">00:00</span>
+          </div>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- COLUMNA 2: TABLERO OPERATIVO PRINCIPAL -->
+    <main class="main-stage">
+      <!-- SECCIÓN SUPERIOR: 2 REPORTES / GRÁFICOS (HISTOGRAMA + FLUJO) -->
+      <section class="top-reports-grid">
+        <!-- CARD 1: REPORTE 1 - HISTOGRAMA DE DEMANDA HORARIA -->
+        <div class="report-card report-card--chart">
+          <header class="report-card__header">
+            <div class="report-card__title">
+              <i class="fa-solid fa-chart-column" style="color: var(--primary);"></i>
+              <span>Histograma de Demanda</span>
+              <span id="chip-demanda-total" class="chart-live-chip chart-live-chip--flow" style="display: none;"></span>
+              <span id="chip-pico-live" class="chart-live-chip chart-live-chip--peak" style="display: none;"></span>
+            </div>
+            <div class="report-card__legend">
+              <span class="legend-chip"><span class="legend-color legend-color--live"></span> En Vivo</span>
+              <span class="legend-chip"><span class="legend-color legend-color--bar"></span> Emitidos</span>
+              <span class="legend-chip"><span class="legend-color legend-color--peak"></span> Pico Máx</span>
+            </div>
+          </header>
+          <div class="chart-svg-wrap">
+            <svg id="svg-hist" viewBox="0 0 620 120" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="grad-bar-live" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#34d399" stop-opacity="1"/>
+                  <stop offset="100%" stop-color="#059669" stop-opacity="1"/>
+                </linearGradient>
+                <linearGradient id="grad-bar" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#38bdf8" stop-opacity="1"/>
+                  <stop offset="100%" stop-color="#1d4ed8" stop-opacity="1"/>
+                </linearGradient>
+                <linearGradient id="grad-bar-peak" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#c084fc" stop-opacity="1"/>
+                  <stop offset="100%" stop-color="#7c3aed" stop-opacity="1"/>
+                </linearGradient>
+                <filter id="shadow-bar" x="-20%" y="-10%" width="140%" height="130%">
+                  <feDropShadow dx="0" dy="2" stdDeviation="1.5" flood-color="#0284c7" flood-opacity="0.25"/>
+                </filter>
+              </defs>
+              <!-- Lienzo sutil de contraste para alta visibilidad -->
+              <rect x="30" y="8" width="576" height="84" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1" />
+              <g id="svg-hist-grid"></g>
+              <g id="svg-barras"></g>
+              <g id="svg-hist-live"></g>
+            </svg>
+          </div>
+        </div>
+
+        <!-- CARD 2: REPORTE 2 - CURVA DE FLUJO HORARIO (DIARIO / MES) -->
+        <div class="report-card report-card--chart">
+          <header class="report-card__header">
+            <div class="report-card__title">
+              <i class="fa-solid fa-chart-line" style="color: var(--primary);"></i>
+              <span id="flujo-card-title">Curva de Flujo Horario (Hoy)</span>
+              <span id="chip-flujo-total" class="chart-live-chip chart-live-chip--flow" style="display: none;"></span>
+            </div>
+            <div class="report-card__controls" style="display: flex; align-items: center; gap: 8px;">
+              <div class="flujo-view-toggle">
+                <button type="button" id="btn-flujo-dia" class="flujo-toggle-btn active" title="Ver flujo por hora del día de hoy">
+                  <i class="fa-solid fa-calendar-days"></i>
+                  <span class="tab-label">Diario</span>
+                </button>
+                <button type="button" id="btn-flujo-mes" class="flujo-toggle-btn" title="Ver flujo por hora acumulado del mes">
+                  <i class="fa-solid fa-calendar-days"></i>
+                  <span class="tab-label">Mes</span>
+                </button>
+              </div>
+              <div class="report-card__legend">
+                <span class="legend-chip"><span class="legend-color legend-color--trend"></span> <span id="lbl-leg-flujo">Flujo Hoy</span></span>
+              </div>
+            </div>
+          </header>
+          <div class="chart-svg-wrap">
+            <svg id="svg-curva" viewBox="0 0 620 120" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="grad-flow" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#0284c7" stop-opacity="0.32"/>
+                  <stop offset="70%" stop-color="#38bdf8" stop-opacity="0.08"/>
+                  <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.0"/>
+                </linearGradient>
+              </defs>
+              <!-- Lienzo sutil de contraste para alta visibilidad -->
+              <rect x="30" y="8" width="576" height="84" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1" />
+              <g id="svg-grid"></g>
+              <!-- Área continua del flujo -->
+              <path id="svg-area" d="" fill="url(#grad-flow)" />
+              <!-- Curva continua de flujo -->
+              <path id="svg-linea" d="" fill="none" stroke="#0284c7" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" />
+              <!-- Línea de referencia del Promedio de Flujo -->
+              <path id="svg-linea-sec" d="" fill="none" stroke="#ef4444" stroke-width="1.8" stroke-dasharray="5,4" />
+              <g id="svg-prom-badge"></g>
+              <!-- Nodos en intervalos de 30 minutos -->
+              <g id="svg-puntos"></g>
+              <!-- Etiquetas horarias cada 30 min -->
+              <g id="svg-flujo-horas"></g>
+              <!-- Guía interactiva hover (crosshair) -->
+              <g id="svg-curva-crosshair"></g>
+            </svg>
+          </div>
+        </div>
+      </section>
+
+      <!-- LAS 3 TABLAS DE TIEMPOS PRINCIPALES -->
+      <section class="tables-grid">
+        <!-- 1. TIEMPO ESPERA -->
+        <div class="table-card">
+          <header class="table-card__header">
+            <div class="table-card__title">
+              <span class="table-tag table-tag--blue"></span>
+              <h2>Tiempo de Espera</h2>
+            </div>
+            <span class="count-pill" id="c-espera">0</span>
+          </header>
+          <div class="table-wrap tabla-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Ticket</th>
+                  <th>Minutos</th>
+                  <th>Contribuyente</th>
+                  <th class="col-bsc">BSC</th>
+                </tr>
+              </thead>
+              <tbody id="tb-espera"></tbody>
+            </table>
+            <div class="empty-state" id="v-espera" hidden>
+              Sin tickets en espera
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. TIEMPO ATENCIÓN -->
+        <div class="table-card">
+          <header class="table-card__header">
+            <div class="table-card__title">
+              <span class="table-tag table-tag--indigo"></span>
+              <h2>Tiempo de Atención</h2>
+            </div>
+            <span class="count-pill" id="c-atencion">0</span>
+          </header>
+          <div class="table-wrap tabla-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Ticket</th>
+                  <th>Minutos</th>
+                  <th>Gestor</th>
+                  <th>Contribuyente</th>
+                  <th class="col-bsc">BSC</th>
+                </tr>
+              </thead>
+              <tbody id="tb-atencion"></tbody>
+            </table>
+            <div class="empty-state" id="v-atencion" hidden>
+              No hay atenciones en curso
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. PRODUCCIÓN (GESTOR Y TIPO DE TICKET) -->
+        <div class="tables-col-stack">
+          <!-- 3.1 Producción por Gestor -->
+          <div class="table-card">
+            <header class="table-card__header">
+              <div class="table-card__title">
+                <span class="table-tag table-tag--green"></span>
+                <h2>Producción</h2>
+              </div>
+              <span class="count-pill" id="c-produccion">0</span>
+            </header>
+            <div class="table-wrap tabla-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Gestor</th>
+                    <th class="text-right">Atenc.</th>
+                    <th class="text-right">Prom.</th>
+                    <th class="col-bsc">BSC</th>
+                  </tr>
+                </thead>
+                <tbody id="tb-produccion"></tbody>
+              </table>
+              <div class="empty-state" id="v-produccion" hidden>
+                Sin atenciones concluidas hoy
+              </div>
+            </div>
+          </div>
+
+          <!-- 3.2 Producción por Tipo de Ticket -->
+          <div class="table-card table-card--tipo">
+            <header class="table-card__header">
+              <div class="table-card__title">
+                <span class="table-tag table-tag--teal"></span>
+                <h2>Producción por Tipo</h2>
+              </div>
+              <span class="count-pill" id="c-produccion-tipo">0</span>
+            </header>
+            <div class="table-wrap tabla-scroll">
+              <table class="table-produccion-tipo">
+                <thead>
+                  <tr>
+                    <th>Tipo</th>
+                    <th class="text-right">Atenciones</th>
+                    <th class="text-right" title="En Tiempo de Atención">En TA</th>
+                    <th class="col-bsc">BSC</th>
+                  </tr>
+                </thead>
+                <tbody id="tb-produccion-tipo"></tbody>
+              </table>
+              <div class="empty-state" id="v-produccion-tipo" hidden>
+                Sin atenciones por tipo hoy
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VENTANILLAS SUSPENDIDAS (COLAPSABLE LIMPIO) -->
+      <details class="suspension-box tarjeta-suspension-wrap">
+        <summary class="suspension-box__summary">
+          <div class="suspension-box__title">
+            <span class="status-dot status-dot--amber"></span>
+            <span>Ventanillas Suspendidas</span>
+            <span class="count-pill count-pill--subtle" id="c-suspension">0</span>
+          </div>
+          <span class="suspension-box__hint">Clic para ver detalle ▼</span>
+        </summary>
+        <div class="table-wrap tabla-scroll tabla-scroll--susp">
+          <table>
+            <thead>
+              <tr>
+                <th>Gestor</th>
+                <th>Motivo de Suspensión</th>
+                <th>Hora Inicio</th>
+                <th>Tiempo Transcurrido</th>
+                <th class="col-bsc">BSC</th>
+              </tr>
+            </thead>
+            <tbody id="tb-suspension"></tbody>
+          </table>
+          <div class="empty-state" id="v-suspension" hidden>
+            Todas las ventanillas están activas
+          </div>
+        </div>
+      </details>
+
+      <div class="alerta-error" id="aviso" hidden></div>
+    </main>
+  </div>
+</div>
+</div>
+
+<!-- ====================================================================
+     PANEL LATERAL DESPLEGABLE (DRAWER) - GUÍA Y PADRONES
+     ==================================================================== -->
+<div id="drawer-backdrop" class="drawer-backdrop"></div>
+
+<aside id="drawer-guia" class="drawer" aria-hidden="true">
+  <header class="drawer__header">
+    <div class="drawer__title-group">
+      <h2 class="drawer__title" id="drawer-main-title">Guía de Preguntas</h2>
+      <span class="drawer__sub" id="drawer-main-sub">Base de datos institucional (intendenciajunin - tvm_preguntas)</span>
+    </div>
+    <button type="button" id="btn-cerrar-guia" class="drawer__close" aria-label="Cerrar panel">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+  </header>
+
+  <div class="drawer__content" style="padding-top: 14px;">
+    <!-- ÚNICA SECCIÓN: GUÍA DE PREGUNTAS (CRUD COMPLETO) -->
+    <div id="tab-faq" class="drawer-pane drawer-pane--active">
+      <div class="drawer-search">
+        <div class="search-row" style="display: flex; gap: 8px; align-items: center;">
+          <div class="search-field" style="flex: 1;">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="input-filtro-faq" placeholder="Buscar por pregunta o respuesta...">
+          </div>
+          <button type="button" id="btn-nueva-pregunta" class="btn btn--primary btn--sm" style="white-space: nowrap;">
+            <i class="fa-solid fa-plus"></i>
+            <span>Agregar Pregunta</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="faq-list" id="faq-list-container">
+        <!-- Renderizado dinámico de tarjetas de preguntas desde MariaDB -->
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- TOOLTIP FLOTANTE INTERACTIVO PARA GRÁFICAS -->
+<div id="chart-tooltip" class="chart-tooltip" role="tooltip" aria-hidden="true"></div>
+
+<!-- NOTIFICACIÓN TOAST SUTIL -->
+<div id="toast" class="toast" aria-live="polite"></div>
+
+<!-- MODAL PARA AGREGAR / EDITAR PREGUNTA EN LA GUÍA -->
+<div id="modal-guia-backdrop" class="modal-backdrop" hidden>
+  <div class="modal-dialog">
+    <header class="modal-header">
+      <h3 class="modal-title" id="modal-guia-title">Agregar Pregunta Frecuente</h3>
+      <button type="button" id="btn-cerrar-modal-guia" class="modal-close" aria-label="Cerrar modal">&times;</button>
+    </header>
+    <form id="form-guia" class="modal-body">
+      <input type="hidden" id="faq-id" value="">
+      
+      <div class="form-group">
+        <label for="faq-pregunta" class="form-label">Pregunta / Nombre del Trámite <span class="req">*</span></label>
+        <input type="text" id="faq-pregunta" class="form-control" placeholder="Ej: ¿Cómo puedo recuperar mi Clave SOL?" required>
+      </div>
+
+      <div class="form-group">
+        <label for="faq-respuesta" class="form-label">Respuesta y Procedimiento <span class="req">*</span></label>
+        <textarea id="faq-respuesta" class="form-control form-control--textarea" rows="8" placeholder="Detalle los requisitos, enlace o pasos para el trámite..." required></textarea>
+      </div>
+
+      <footer class="modal-footer">
+        <button type="button" id="btn-cancelar-modal-guia" class="btn btn--subtle">Cancelar</button>
+        <button type="submit" id="btn-guardar-guia" class="btn btn--primary">Guardar Pregunta</button>
+      </footer>
+    </form>
+  </div>
+</div>
+
+{% if es_detallado %}
+<!-- MODAL PARA CONSULTA DE REPORTE DIARIO HISTÓRICO (SOLO DIRECTIVOS Y ADMIN) -->
+<div id="modal-reporte-backdrop" class="modal-backdrop" hidden>
+  <div class="modal-dialog modal-dialog--reporte">
+    <header class="modal-header">
+      <div class="modal-header__title-wrap">
+        <h3 class="modal-title">Reporte Detallado por Día</h3>
+        <span class="modal-subtitle">Auditoría de tickets, atenciones y cumplimiento de tiempos de espera</span>
+      </div>
+      <button type="button" id="btn-cerrar-modal-reporte" class="modal-close" aria-label="Cerrar modal">&times;</button>
+    </header>
+
+    <div class="modal-body modal-body--reporte">
+      <!-- Barra de Filtros y Acciones -->
+      <div class="reporte-toolbar">
+        <div class="reporte-toolbar__inputs">
+          <div class="form-group-inline">
+            <label for="rep-filtro-sede" class="form-label-sm">Centro de Servicios:</label>
+            <select id="rep-filtro-sede" class="form-control form-control--sm">
+              {% for s in sedes %}
+              <option value="{{ s.codigo }}" {% if s.codigo == sede_actual %}selected{% endif %}>{{ s.nombre }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group-inline">
+            <label for="rep-filtro-fecha" class="form-label-sm">Fecha de Atención:</label>
+            <input type="date" id="rep-filtro-fecha" class="form-control form-control--sm">
+          </div>
+
+          <button type="button" id="btn-consultar-reporte" class="btn btn--primary btn--sm">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <span>Consultar</span>
+          </button>
+        </div>
+
+        <div class="reporte-toolbar__actions">
+          <div class="search-field search-field--sm">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="rep-filtro-busqueda" placeholder="Filtrar por ticket, gestor, RUC...">
+          </div>
+
+          <button type="button" id="btn-exportar-csv" class="btn btn--subtle btn--sm" title="Descargar como archivo CSV compatible con Excel">
+            <i class="fa-solid fa-file-excel" style="color: #107c41;"></i>
+            <span>Exportar CSV</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Tarjetas de Resumen Ejecutivo del Día Consultado -->
+      <div class="reporte-kpi-bar" id="reporte-kpi-bar">
+        <div class="rep-kpi-item">
+          <span class="rep-kpi-label">Tickets del Día</span>
+          <span class="rep-kpi-val" id="rep-kpi-total">0</span>
+        </div>
+        <div class="rep-kpi-item" id="rep-kpi-box-pct">
+          <span class="rep-kpi-label">% Espera &le; 15m (Meta &ge; 90%)</span>
+          <span class="rep-kpi-val text-success" id="rep-kpi-pct">--%</span>
+        </div>
+        <div class="rep-kpi-item">
+          <span class="rep-kpi-label">Espera Promedio</span>
+          <span class="rep-kpi-val" id="rep-kpi-esp">00:00</span>
+        </div>
+        <div class="rep-kpi-item">
+          <span class="rep-kpi-label">TA Promedio</span>
+          <span class="rep-kpi-val" id="rep-kpi-ta">00:00</span>
+        </div>
+        <div class="rep-kpi-item">
+          <span class="rep-kpi-label">Gestores en Ventanilla</span>
+          <span class="rep-kpi-val" id="rep-kpi-gestores">0</span>
+        </div>
+      </div>
+
+      <!-- Tabla Detallada de Tickets -->
+      <div class="reporte-table-wrap">
+        <table class="reporte-table">
+          <thead>
+            <tr>
+              <th>Ticket</th>
+              <th>Tipo / Servicio</th>
+              <th>Modalidad</th>
+              <th>Contribuyente</th>
+              <th>Gestor</th>
+              <th class="text-center">Vent.</th>
+              <th>Emisión</th>
+              <th>Inicio</th>
+              <th>Fin</th>
+              <th class="text-right">T. Espera</th>
+              <th class="text-right">T. Atención</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody id="tb-reporte-dia">
+            <tr>
+              <td colspan="12" class="empty-state">Seleccione una fecha y haga clic en "Consultar" para ver los tickets</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="empty-state" id="v-reporte-dia" hidden>
+          No se encontraron registros para la fecha y filtros seleccionados
+        </div>
+      </div>
+    </div>
+
+    <footer class="modal-footer reporte-footer">
+      <div class="reporte-footer__info" id="rep-footer-info">
+        Mostrando 0 tickets
+      </div>
+      <button type="button" id="btn-cerrar-reporte-bottom" class="btn btn--subtle">Cerrar</button>
+    </footer>
+  </div>
+</div>
+{% endif %}
+
+<!-- ====================================================================
+     MODAL DE ACCESO / INICIO DE SESIÓN ESTILO SICODE
+     ==================================================================== -->
+<div id="modal-auth-backdrop" class="modal-backdrop" hidden>
+  <div class="modal-dialog modal-dialog--auth">
+    <!-- Icono Flotante Circular (SICODE) -->
+    <div class="login-floating-icon">
+      <i class="fa-solid fa-user"></i>
+    </div>
+
+    <!-- Botón Cerrar Discreto -->
+    <button type="button" id="btn-cerrar-modal-auth" class="modal-close-sicode" aria-label="Cerrar">&times;</button>
+
+    <!-- Marca / Título -->
+    <div class="login-modal-brand">
+      <img src="/static/iconSunat.svg" alt="SUNAT" style="height: 32px; margin-bottom: 4px;">
+      <h3>SITRA JUNÍN</h3>
+      <span>Monitoreo de Tiempos &bull; IR Junín</span>
+    </div>
+
+    <!-- Mensaje de Error (SICODE Style) -->
+    <div id="auth-login-error" class="error-message u-hidden">
+      <i class="fa-solid fa-circle-exclamation"></i>
+      <span id="auth-error-msg-text"></span>
+    </div>
+
+    <form id="form-auth-login">
+      <!-- Usuario / Correo -->
+      <label class="login-label" for="auth-correo">Usuario / Correo</label>
+      <div class="login-input-group">
+        <i class="fa-solid fa-user login-input-icon"></i>
+        <input type="email" id="auth-correo" class="login-input" placeholder="ejemplo@sunat.gob.pe" required autocomplete="username">
+      </div>
+
+      <!-- Contraseña -->
+      <label class="login-label" for="auth-password">Contraseña</label>
+      <div class="login-input-group">
+        <i class="fa-solid fa-lock login-input-icon"></i>
+        <input type="password" id="auth-password" class="login-input" placeholder="Ingrese su contraseña" required autocomplete="current-password">
+        <button type="button" class="btn-toggle-eye" onclick="const p=document.getElementById('auth-password'),ic=this.querySelector('i');if(p.type==='password'){p.type='text';ic.classList.replace('fa-eye','fa-eye-slash');}else{p.type='password';ic.classList.replace('fa-eye-slash','fa-eye');}">
+          <i class="fa-solid fa-eye"></i>
+        </button>
+      </div>
+
+      <!-- Opciones / Recordar -->
+      <div class="login-options">
+        <label class="login-checkbox">
+          <input type="checkbox" checked> Recordarme
+        </label>
+        <span style="font-size: 11.5px; color: var(--text-muted);">Directivos / Admin</span>
+      </div>
+
+      <!-- Botón Primario Ingresar -->
+      <button type="submit" id="btn-submit-login" class="login-btn">
+        <span>Ingresar</span>
+      </button>
+
+      <!-- Botón Secundario Invitado (Vista General) -->
+      <button type="button" id="btn-confirm-guest" class="login-btn-guest">
+        <span>Entrar como Invitado</span>
+      </button>
+    </form>
+
+    <p class="login-subtext-note">
+      Los invitados pueden consultar el tablero general.<br>El reporte detallado está reservado para directivos.
+    </p>
+  </div>
+</div>
+
+<!-- ====================================================================
+     MODAL DE GESTIÓN DE DIRECTIVOS (SOLO ADMINISTRADOR)
+     ==================================================================== -->
+<div id="modal-usuarios-backdrop" class="modal-backdrop" hidden>
+  <div class="modal-dialog modal-dialog--usuarios">
+    <header class="modal-header">
+      <div class="modal-header__title-wrap">
+        <h3 class="modal-title">Gestión de Usuarios Directivos</h3>
+        <span class="modal-subtitle">Asignación de cuentas autorizadas para consultar el reporte detallado</span>
+      </div>
+      <button type="button" id="btn-cerrar-modal-usuarios" class="modal-close" aria-label="Cerrar">&times;</button>
+    </header>
+
+    <div class="modal-body modal-body--usuarios">
+      <!-- Formulario para agregar directivo -->
+      <div class="user-mgmt-form-card">
+        <h4 class="user-mgmt-subtitle">+ Registrar Nuevo Directivo</h4>
+        <form id="form-crear-usuario" class="user-form-grid">
+          <div class="form-group">
+            <label for="new-user-nombre" class="form-label">Nombre Completo <span class="req">*</span></label>
+            <input type="text" id="new-user-nombre" class="form-control" placeholder="Ej: Dr. Carlos Ramos" required>
+          </div>
+
+          <div class="form-group">
+            <label for="new-user-correo" class="form-label">Correo Electrónico <span class="req">*</span></label>
+            <input type="email" id="new-user-correo" class="form-control" placeholder="cramos@sunat.gob.pe" required>
+          </div>
+
+          <div class="form-group">
+            <label for="new-user-password" class="form-label">Contraseña <span class="req">*</span></label>
+            <input type="password" id="new-user-password" class="form-control" placeholder="Mínimo 6 caracteres" required>
+          </div>
+
+          <div class="form-group">
+            <label for="new-user-rol" class="form-label">Rol Asignado</label>
+            <select id="new-user-rol" class="form-control">
+              <option value="directivo" selected>Directivo (Ver Reportes)</option>
+              <option value="admin">Administrador (Total)</option>
+            </select>
+          </div>
+
+          <div class="user-form-grid__actions">
+            <button type="submit" id="btn-guardar-nuevo-usuario" class="btn btn--primary">
+              <span>Guardar Usuario</span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Tabla de usuarios registrados -->
+      <div class="user-mgmt-table-card">
+        <h4 class="user-mgmt-subtitle">Usuarios Registrados en la Base de Datos Local</h4>
+        <div class="table-wrap-clean">
+          <table class="reporte-table">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Correo Electrónico</th>
+                <th>Rol</th>
+                <th class="text-center">Estado</th>
+                <th>Creado</th>
+                <th class="text-right">Acción</th>
+              </tr>
+            </thead>
+            <tbody id="tb-lista-usuarios">
+              <tr><td colspan="6" class="empty-state">Cargando usuarios...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/static/tablero.js?v={{ version }}"></script>
+<script>
+  function toggleSitraAccountPopover(e) {
+    if (e) e.stopPropagation();
+    const pop = document.getElementById('sitra-account-popover');
+    if (pop) pop.classList.toggle('open');
+  }
+  document.addEventListener('click', function(e) {
+    const pop = document.getElementById('sitra-account-popover');
+    const btn = document.getElementById('btn-account-toggle');
+    if (pop && pop.classList.contains('open') && !pop.contains(e.target) && (!btn || !btn.contains(e.target))) {
+      pop.classList.remove('open');
+    }
+  });
+</script>
+</body>
+</html>

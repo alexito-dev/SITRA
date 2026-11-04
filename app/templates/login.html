@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión - SITRA IR Junín</title>
+
+    <!-- Fuentes Google (Inter Moderna Fintech / SaaS) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome 6 (SICODE) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            /* --- SICODE EXACT COLOR PALETTE --- */
+            --primary-blue:        #0163ac;
+            --primary-blue-hover:  #014f88;
+            --primary-blue-light:  #e4f3ff;
+            --primary-blue-border: #bedbff;
+            --primary-blue-text:   #033f6c;
+
+            --white:               #ffffff;
+            --bg-light-gray:       #f3f4f6;
+            --border-gray:         #e5e7eb;
+
+            --text-dark:           #1e2939;
+            --text-gray:           #4a5565;
+            --text-light-gray:     #99a1af;
+            --text-muted:          #6a7282;
+
+            --accent-red:          #e7000b;
+
+            --font-sans:           "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            --font-main:           var(--font-sans);
+            --font-body:           var(--font-sans);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body.login-body {
+            background-color: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 30px 16px;
+            font-family: var(--font-body);
+            color: var(--text-dark);
+        }
+
+        .login-card {
+            background-color: var(--primary-blue-light);
+            width: 390px;
+            max-width: 100%;
+            padding: 62px 38px 36px;
+            border-radius: 30px;
+            position: relative;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0, 75, 150, 0.12);
+            animation: sicodeFadeIn 0.25s ease-out;
+        }
+
+        @keyframes sicodeFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px) scale(0.97);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Icono Flotante Superior Exacto de SICODE */
+        .login-floating-icon {
+            width: 90px;
+            height: 90px;
+            background-color: var(--primary-blue);
+            color: white;
+            font-size: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            top: -45px;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid var(--white);
+            box-shadow: 0 4px 15px rgba(1, 99, 172, 0.25);
+        }
+
+        .login-brand-header {
+            margin-bottom: 8px;
+        }
+
+        .brand-logo-sunat {
+            height: 36px;
+            margin-bottom: 6px;
+        }
+
+        .brand-title {
+            font-family: var(--font-main);
+            font-weight: 700;
+            font-size: 20px;
+            color: var(--primary-blue-text);
+            letter-spacing: -0.4px;
+        }
+
+        .brand-subtitle {
+            font-size: 12px;
+            color: var(--text-gray);
+            margin-top: 2px;
+        }
+
+        .login-label {
+            display: block;
+            text-align: left;
+            font-family: var(--font-main);
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--primary-blue-text);
+            font-size: 13px;
+            margin-bottom: 8px;
+            margin-top: 18px;
+            margin-left: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .login-input-group {
+            position: relative;
+            margin-bottom: 10px;
+        }
+
+        .login-input-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #cbd5e1;
+            font-size: 16px;
+        }
+
+        .login-input {
+            width: 100%;
+            height: 46px;
+            border-radius: 50px;
+            border: 1px solid transparent;
+            padding-left: 48px;
+            padding-right: 48px;
+            font-size: 14px;
+            outline: none;
+            transition: 0.2s;
+            background-color: var(--white);
+            color: var(--text-dark);
+            font-family: var(--font-body);
+        }
+
+        .login-input:focus {
+            box-shadow: 0 0 0 3px rgba(1, 99, 172, 0.2);
+            border-color: var(--primary-blue-border);
+        }
+
+        .btn-toggle-eye {
+            position: absolute;
+            right: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            z-index: 10;
+            font-size: 15px;
+        }
+
+        .btn-toggle-eye:hover {
+            color: var(--primary-blue);
+        }
+
+        .login-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 18px;
+            font-size: 13px;
+            color: var(--text-gray);
+            padding: 0 4px;
+        }
+
+        .login-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+
+        .login-checkbox input {
+            accent-color: var(--primary-blue);
+        }
+
+        .login-btn {
+            width: 100%;
+            height: 48px;
+            background-color: var(--primary-blue);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-family: var(--font-main);
+            font-weight: 700;
+            font-size: 15px;
+            margin-top: 24px;
+            cursor: pointer;
+            transition: 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .login-btn:hover {
+            background-color: var(--primary-blue-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(1, 99, 172, 0.3);
+        }
+
+        .login-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .login-btn-guest {
+            width: 100%;
+            height: 44px;
+            background-color: var(--white);
+            color: var(--primary-blue);
+            border: 2px solid var(--primary-blue);
+            border-radius: 50px;
+            font-family: var(--font-main);
+            font-weight: 700;
+            font-size: 13px;
+            margin-top: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .login-btn-guest:hover {
+            background-color: #f0f7ff;
+            color: var(--primary-blue-hover);
+            border-color: var(--primary-blue-hover);
+        }
+
+        .login-guest-note {
+            font-size: 11.5px;
+            color: var(--text-gray);
+            margin-top: 14px;
+            line-height: 1.4;
+        }
+
+        .error-message {
+            background-color: #fee2e2;
+            color: #b91c1c;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 13px;
+            margin-top: 14px;
+            margin-bottom: 6px;
+            border: 1px solid #fecaca;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+    </style>
+</head>
+
+<body class="login-body">
+
+    <div class="login-card">
+        <!-- Icono Flotante Superior Exacto de SICODE -->
+        <div class="login-floating-icon">
+            <i class="fa-solid fa-user"></i>
+        </div>
+
+        <!-- Encabezado Corporativo -->
+        <div class="login-brand-header">
+            <img src="/static/iconSunat.svg" alt="SUNAT" class="brand-logo-sunat">
+            <h2 class="brand-title">SITRA JUNÍN</h2>
+            <p class="brand-subtitle">Monitoreo de Tiempos &bull; IR Junín</p>
+        </div>
+
+        <!-- Alerta de Error (SICODE Style) -->
+        <div id="login-error-box" class="error-message" style="display: none;">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <span id="login-error-text"></span>
+        </div>
+
+        <form id="form-login-page">
+            <!-- Usuario / Correo -->
+            <label class="login-label" for="input-correo">Usuario / Correo</label>
+            <div class="login-input-group">
+                <i class="fa-solid fa-user login-input-icon"></i>
+                <input type="email" class="login-input" id="input-correo" name="correo" placeholder="Ingrese su usuario o correo" required autocomplete="username" autofocus>
+            </div>
+
+            <!-- Contraseña -->
+            <label class="login-label" for="input-password">Contraseña</label>
+            <div class="login-input-group">
+                <i class="fa-solid fa-lock login-input-icon"></i>
+                <input type="password" class="login-input" id="input-password" name="password" placeholder="Ingrese su contraseña" required autocomplete="current-password">
+                <button type="button" class="btn-toggle-eye" onclick="togglePass('input-password', this)">
+                    <i class="fa-solid fa-eye"></i>
+                </button>
+            </div>
+
+            <!-- Opciones Extra -->
+            <div class="login-options">
+                <label class="login-checkbox">
+                    <input type="checkbox" name="remember" value="true" checked> Recordarme
+                </label>
+                <span style="font-size: 11.5px; color: var(--text-muted);">Directivos / Admin</span>
+            </div>
+
+            <!-- Botón Ingresar Principal (SICODE) -->
+            <button type="submit" id="btn-login-submit" class="login-btn">
+                <span>Ingresar</span>
+            </button>
+
+            <!-- Botón Invitado Secundario -->
+            <button type="button" id="btn-login-invitado" class="login-btn-guest">
+                <span>Entrar como Invitado</span>
+            </button>
+        </form>
+
+        <p class="login-guest-note">
+            Los invitados pueden consultar el tablero general.<br>El reporte detallado está reservado para directivos.
+        </p>
+    </div>
+
+    <script>
+        function togglePass(id, btn) {
+            const input = document.getElementById(id);
+            const icon = btn.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        }
+
+        const form = document.getElementById("form-login-page");
+        const btnInvitado = document.getElementById("btn-login-invitado");
+        const errorBox = document.getElementById("login-error-box");
+        const errorText = document.getElementById("login-error-text");
+        const btnSubmit = document.getElementById("btn-login-submit");
+
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const correo = document.getElementById("input-correo").value.trim();
+            const password = document.getElementById("input-password").value.trim();
+
+            if (!correo || !password) return;
+
+            btnSubmit.disabled = true;
+            errorBox.style.display = "none";
+            btnSubmit.querySelector("span").textContent = "Verificando...";
+
+            try {
+                const res = await fetch("/api/auth/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: JSON.stringify({ correo, password })
+                });
+
+                const data = await res.json();
+                if (!res.ok) {
+                    throw new Error(data.detail || "Correo o contraseña incorrectos");
+                }
+
+                window.location.href = "/nacional";
+            } catch (err) {
+                errorText.textContent = err.message;
+                errorBox.style.display = "flex";
+                btnSubmit.disabled = false;
+                btnSubmit.querySelector("span").textContent = "Ingresar";
+            }
+        });
+
+        btnInvitado.addEventListener("click", async () => {
+            btnInvitado.disabled = true;
+            try {
+                await fetch("/api/auth/invitado", { method: "POST", credentials: "include" });
+            } catch (e) {}
+            window.location.href = "/nacional";
+        });
+    </script>
+</body>
+
+</html>
